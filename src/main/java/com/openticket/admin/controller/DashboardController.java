@@ -15,6 +15,8 @@ public class DashboardController {
     @Autowired
     private AnnouncementService announcementService;
 
+    // =============廠商端=============
+    // =============後台主頁=============
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         long count = announcementService.count();
@@ -25,10 +27,11 @@ public class DashboardController {
         return "index";
     }
 
+    // =============公告分頁=============
     @GetMapping("/dashboard/announcement")
     public String announcementPage(Model model) {
-        model.addAttribute("view", "fragments/announcement"); // 或 dashboard layout
-        return "index"; // index.html 包 sidebar & main-content
+        model.addAttribute("view", "fragments/announcement");
+        return "index";
     }
 
     @GetMapping("/content/announcement")
@@ -37,10 +40,11 @@ public class DashboardController {
         return "fragments/announcement :: content";
     }
 
+    // =============活動分頁=============
     @GetMapping("/dashboard/event")
     public String eventPage(Model model) {
-        model.addAttribute("view", "fragments/event"); // 或 dashboard layout
-        return "index"; // index.html 包 sidebar & main-content
+        model.addAttribute("view", "fragments/event");
+        return "index";
     }
 
     @GetMapping("/content/event")

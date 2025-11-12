@@ -1,0 +1,33 @@
+package com.openticket.admin.service;
+
+import com.openticket.admin.entity.Announcement;
+import com.openticket.admin.repository.AnnouncementRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AnnouncementService {
+
+    @Autowired
+    private AnnouncementRepository repository;
+
+    // 查詢所有公告
+    public List<Announcement> getAll() {
+        return repository.findAll();
+    }
+
+    // 新增公告
+    public Announcement create(Announcement ann) {
+        if (ann == null) {
+            throw new IllegalArgumentException("公告資料不能為 null");
+        }
+        return repository.save(ann);
+    }
+
+    // 公告數量
+    public long count() {
+        return repository.count();
+    }
+}

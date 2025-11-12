@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>後台管理平台</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Microsoft JhengHei", Arial, sans-serif;
+        background: #f5f5f5;
+        min-height: 100vh;
+      }
+
+      /* 頂部標題 */
+      .top-header {
+        background: white;
+        padding: 15px 30px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .top-header i {
+        color: #7ed321;
+        font-size: 24px;
+      }
+
+      .top-header h1 {
+        font-size: 18px;
+        color: #333;
+        font-weight: normal;
+      }
+
+      /* 主要佈局 */
+      .dashboard {
+        display: flex;
+        height: calc(100vh - 60px);
+      }
+
+      /* 左側主選單 */
+      .main-sidebar {
+        width: 90px;
+        background: #3a3a3a;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .main-nav-item {
+        padding: 25px 15px;
+        text-align: center;
+        color: #999;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-left: 4px solid transparent;
+        position: relative;
+      }
+
+      .main-nav-item:hover {
+        background: #2d2d2d;
+        color: white;
+      }
+
+      .main-nav-item.active {
+        background: #2d2d2d;
+        color: white;
+        border-left-color: #7ed321;
+      }
+
+      .main-nav-item i {
+        font-size: 28px;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .main-nav-item span {
+        font-size: 12px;
+        display: block;
+      }
+
+      /* 次選單 */
+      .sub-sidebar {
+        width: 250px;
+        background: #5a5a5a;
+        overflow-y: auto;
+      }
+
+      .sub-nav-item {
+        padding: 15px 25px;
+        color: #ddd;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+      }
+
+      .sub-nav-item:hover {
+        background: #4a4a4a;
+        color: white;
+      }
+
+      .sub-nav-item.active {
+        background: #4a4a4a;
+        color: white;
+        border-left-color: #7ed321;
+      }
+
+      /* 主要內容區 */
+      .main-content {
+        flex: 1;
+        background: #f5f5f5;
+        overflow-y: auto;
+      }
+
+      .content-section {
+        display: none;
+      }
+
+      .content-section.active {
+        display: block;
+      }
+
+      /* 內容頁面 */
+      .content-wrapper {
+        padding: 30px;
+      }
+
+      .content-card {
+        background: white;
+        border-radius: 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      /* 標籤頁 */
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid #e0e0e0;
+        background: white;
+      }
+
+      .tab {
+        padding: 15px 25px;
+        cursor: pointer;
+        color: #666;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+      }
+
+      .tab:hover {
+        color: #333;
+      }
+
+      .tab.active {
+        color: #7ed321;
+        border-bottom-color: #7ed321;
+      }
+
+      /* 表單區域 */
+      .form-section {
+        padding: 30px;
+      }
+
+      .form-title {
+        color: #7ed321;
+        font-size: 16px;
+        margin-bottom: 20px;
+        font-weight: 600;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        align-items: start;
+        margin-bottom: 20px;
+        gap: 15px;
+      }
+
+      .form-label {
+        color: #333;
+        padding-top: 10px;
+        text-align: right;
+        font-size: 14px;
+      }
+
+      .form-input {
+        width: 100%;
+        max-width: 600px;
+      }
+
+      .form-input input,
+      .form-input textarea,
+      .form-input select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 0;
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      .form-input input:focus,
+      .form-input textarea:focus,
+      .form-input select:focus {
+        outline: none;
+        border-color: #7ed321;
+      }
+
+      .form-input textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      /* 按鈕 */
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        padding: 20px 30px;
+        background: #f9f9f9;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .btn {
+        padding: 10px 30px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+
+      .btn-primary {
+        background: #7ed321;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #6bc018;
+      }
+
+      .btn-secondary {
+        background: #ddd;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #ccc;
+      }
+
+      .btn-danger {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+
+      /* 資料列表 */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .data-table th {
+        background: #f5f5f5;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #e0e0e0;
+        font-size: 14px;
+      }
+
+      .data-table td {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .data-table tr:hover {
+        background: #fafafa;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-icon {
+        padding: 6px 12px;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        background: white;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-icon:hover {
+        background: #f5f5f5;
+        border-color: #7ed321;
+        color: #7ed321;
+      }
+
+      /* 空狀態 */
+      .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #999;
+      }
+
+      .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+      }
+
+      .empty-state p {
+        font-size: 16px;
+      }
+
+      /* 模態框 */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .modal-header {
+        padding: 20px 30px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f9f9f9;
+      }
+
+      .modal-header h3 {
+        color: #333;
+        font-size: 18px;
+      }
+
+      .close-modal {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #999;
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .close-modal:hover {
+        color: #333;
+      }
+
+      /* 統計卡片 */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        padding: 30px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 30px;
+        border-left: 4px solid #7ed321;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-card h3 {
+        font-size: 42px;
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .stat-card p {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .stat-card i {
+        font-size: 48px;
+        color: #7ed321;
+        opacity: 0.2;
+        float: right;
+      }
+
+      /* 歡迎區域 */
+      .welcome-banner {
+        background: linear-gradient(135deg, #7ed321 0%, #5fa818 100%);
+        color: white;
+        padding: 50px 30px;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .welcome-banner h1 {
+        font-size: 36px;
+        margin-bottom: 15px;
+      }
+
+      .welcome-banner p {
+        font-size: 18px;
+        opacity: 0.9;
+      }
+
+      @media (max-width: 1024px) {
+        .main-sidebar {
+          width: 70px;
+        }
+
+        .main-nav-item span {
+          font-size: 10px;
+        }
+
+        .sub-sidebar {
+          width: 200px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+
+        .form-label {
+          text-align: left;
+          padding-top: 0;
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 頂部標題 -->
+    <div class="top-header">
+      <i class="fas fa-cloud"></i>
+      <h1>CONTROL PANEL</h1>
+    </div>
+
+    <!-- 主要佈局 -->
+    <div class="dashboard">
+      <!-- 左側主選單 -->
+      <div class="main-sidebar">
+        <div class="main-nav-item active" data-main="content">
+          <i class="fas fa-file-alt"></i>
+          <span>內容管理</span>
+        </div>
+        <div class="main-nav-item" data-main="company">
+          <i class="fas fa-building"></i>
+          <span>公司介紹</span>
+        </div>
+        <div class="main-nav-item" data-main="news">
+          <i class="fas fa-newspaper"></i>
+          <span>最新消息</span>
+        </div>
+        <div class="main-nav-item" data-main="contact">
+          <i class="far fa-address-book"></i>
+          <span>聯絡我們</span>
+        </div>
+        <div class="main-nav-item" data-main="settings">
+          <i class="fas fa-cog"></i>
+          <span>網站設定</span>
+        </div>
+      </div>
+
+      <!-- 次選單 -->
+      <div class="sub-sidebar">
+        <div class="sub-nav-item active" data-section="welcome">歡迎頁面</div>
+        <div class="sub-nav-item" data-section="announcements">公告管理</div>
+        <div class="sub-nav-item" data-section="events">活動管理</div>
+        <div class="sub-nav-item" data-section="tickets">票種管理</div>
+      </div>
+
+      <!-- 主要內容區 -->
+      <div class="main-content">
+        <!-- 歡迎頁面 -->
+        <div class="content-section active" id="welcome">
+          <div class="welcome-banner">
+            <h1>歡迎使用後台管理系統</h1>
+            <p>輕鬆管理您的網站內容</p>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <i class="fas fa-bullhorn"></i>
+              <h3 id="announcementCount">0</h3>
+              <p>公告總數</p>
+            </div>
+            <div class="stat-card">
+              <i class="fas fa-calendar-alt"></i>
+              <h3 id="eventCount">0</h3>
+              <p>活動總數</p>
+            </div>
+            <div class="stat-card">
+              <i class="fas fa-ticket-alt"></i>
+              <h3 id="ticketCount">0</h3>
+              <p>票種總數</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 公告管理 -->
+        <div class="content-section" id="announcements">
+          <div class="content-wrapper">
+            <div class="content-card">
+              <div class="tabs">
+                <div class="tab active">基本資料</div>
+                <div class="tab" style="cursor: not-allowed; opacity: 0.5">
+                  列表管理
+                </div>
+                <div class="tab" style="cursor: not-allowed; opacity: 0.5">
+                  SEO
+                </div>
+              </div>
+              <div class="form-section">
+                <h3 class="form-title">公告管理</h3>
+                <form id="announcementForm">
+                  <input type="hidden" id="announcementId" />
+                  <div class="form-row">
+                    <div class="form-label">標題 *</div>
+                    <div class="form-input">
+                      <input type="text" id="announcementTitle" required />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">內容 *</div>
+                    <div class="form-input">
+                      <textarea id="announcementContent" required></textarea>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">狀態</div>
+                    <div class="form-input">
+                      <select id="announcementStatus">
+                        <option value="active">啟用</option>
+                        <option value="inactive">停用</option>
+                      </select>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="saveAnnouncement()"
+                >
+                  儲存
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  onclick="resetAnnouncementForm()"
+                >
+                  重置
+                </button>
+              </div>
+            </div>
+
+            <div class="content-card">
+              <div class="form-section">
+                <h3 class="form-title">公告列表</h3>
+                <table class="data-table" id="announcementTable">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px">序號</th>
+                      <th>標題</th>
+                      <th>內容</th>
+                      <th style="width: 100px">狀態</th>
+                      <th style="width: 150px">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="announcementList"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 活動管理 -->
+        <div class="content-section" id="events">
+          <div class="content-wrapper">
+            <div class="content-card">
+              <div class="tabs">
+                <div class="tab active">基本資料</div>
+                <div class="tab" style="cursor: not-allowed; opacity: 0.5">
+                  列表管理
+                </div>
+                <div class="tab" style="cursor: not-allowed; opacity: 0.5">
+                  SEO
+                </div>
+              </div>
+              <div class="form-section">
+                <h3 class="form-title">活動管理</h3>
+                <form id="eventForm">
+                  <input type="hidden" id="eventId" />
+                  <div class="form-row">
+                    <div class="form-label">活動名稱 *</div>
+                    <div class="form-input">
+                      <input type="text" id="eventName" required />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">活動日期 *</div>
+                    <div class="form-input">
+                      <input type="date" id="eventDate" required />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">活動地點 *</div>
+                    <div class="form-input">
+                      <input type="text" id="eventLocation" required />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">活動描述</div>
+                    <div class="form-input">
+                      <textarea id="eventDescription"></textarea>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">狀態</div>
+                    <div class="form-input">
+                      <select id="eventStatus">
+                        <option value="upcoming">即將舉行</option>
+                        <option value="ongoing">進行中</option>
+                        <option value="completed">已結束</option>
+                      </select>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="saveEvent()"
+                >
+                  儲存
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  onclick="resetEventForm()"
+                >
+                  重置
+                </button>
+              </div>
+            </div>
+
+            <div class="content-card">
+              <div class="form-section">
+                <h3 class="form-title">活動列表</h3>
+                <table class="data-table" id="eventTable">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px">序號</th>
+                      <th>活動名稱</th>
+                      <th>日期</th>
+                      <th>地點</th>
+                      <th style="width: 100px">狀態</th>
+                      <th style="width: 150px">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="eventList"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 票種管理 -->
+        <div class="content-section" id="tickets">
+          <div class="content-wrapper">
+            <div class="content-card">
+              <div class="tabs">
+                <div class="tab active">基本資料</div>
+                <div class="tab" style="cursor: not-allowed; opacity: 0.5">
+                  列表管理
+                </div>
+                <div class="tab" style="cursor: not-allowed; opacity: 0.5">
+                  SEO
+                </div>
+              </div>
+              <div class="form-section">
+                <h3 class="form-title">票種管理</h3>
+                <form id="ticketForm">
+                  <input type="hidden" id="ticketId" />
+                  <div class="form-row">
+                    <div class="form-label">票種名稱 *</div>
+                    <div class="form-input">
+                      <input type="text" id="ticketName" required />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">價格 *</div>
+                    <div class="form-input">
+                      <input type="number" id="ticketPrice" min="0" required />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">數量 *</div>
+                    <div class="form-input">
+                      <input
+                        type="number"
+                        id="ticketQuantity"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">描述</div>
+                    <div class="form-input">
+                      <textarea id="ticketDescription"></textarea>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-label">狀態</div>
+                    <div class="form-input">
+                      <select id="ticketStatus">
+                        <option value="available">可購買</option>
+                        <option value="soldout">售完</option>
+                        <option value="disabled">停售</option>
+                      </select>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="saveTicket()"
+                >
+                  儲存
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  onclick="resetTicketForm()"
+                >
+                  重置
+                </button>
+              </div>
+            </div>
+
+            <div class="content-card">
+              <div class="form-section">
+                <h3 class="form-title">票種列表</h3>
+                <table class="data-table" id="ticketTable">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px">序號</th>
+                      <th>票種名稱</th>
+                      <th>價格</th>
+                      <th>數量</th>
+                      <th style="width: 100px">狀態</th>
+                      <th style="width: 150px">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ticketList"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 資料儲存
+      let announcements = [];
+      let events = [];
+      let tickets = [];
+
+      // 初始化
+      async function init() {
+        await loadAllData();
+        updateStats();
+        renderAll();
+      }
+
+      // 載入所有資料
+      async function loadAllData() {
+        try {
+          const [announcementsData, eventsData, ticketsData] =
+            await Promise.all([
+              window.storage.get("announcements").catch(() => null),
+              window.storage.get("events").catch(() => null),
+              window.storage.get("tickets").catch(() => null),
+            ]);
+
+          announcements = announcementsData
+            ? JSON.parse(announcementsData.value)
+            : [];
+          events = eventsData ? JSON.parse(eventsData.value) : [];
+          tickets = ticketsData ? JSON.parse(ticketsData.value) : [];
+        } catch (error) {
+          console.error("載入資料失敗:", error);
+        }
+      }
+
+      // 儲存資料
+      async function saveData(type, data) {
+        try {
+          await window.storage.set(type, JSON.stringify(data));
+        } catch (error) {
+          console.error("儲存資料失敗:", error);
+          alert("儲存失敗，請稍後再試");
+        }
+      }
+
+      // 切換主選單
+      document.querySelectorAll(".main-nav-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          document
+            .querySelectorAll(".main-nav-item")
+            .forEach((i) => i.classList.remove("active"));
+          item.classList.add("active");
+        });
+      });
+
+      // 切換次選單
+      document.querySelectorAll(".sub-nav-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          document
+            .querySelectorAll(".sub-nav-item")
+            .forEach((i) => i.classList.remove("active"));
+          item.classList.add("active");
+
+          const section = item.dataset.section;
+          document
+            .querySelectorAll(".content-section")
+            .forEach((s) => s.classList.remove("active"));
+          document.getElementById(section).classList.add("active");
+        });
+      });
+
+      // 更新統計
+      function updateStats() {
+        document.getElementById("announcementCount").textContent =
+          announcements.length;
+        document.getElementById("eventCount").textContent = events.length;
+        document.getElementById("ticketCount").textContent = tickets.length;
+      }
+
+      // 渲染所有列表
+      function renderAll() {
+        renderAnnouncements();
+        renderEvents();
+        renderTickets();
+      }
+
+      // ============ 公告管理 ============
+      function renderAnnouncements() {
+        const tbody = document.getElementById("announcementList");
+        if (announcements.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="empty-state"><i class="fas fa-inbox"></i><p>目前沒有任何公告</p></td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = announcements
+          .map(
+            (item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.title}</td>
+                    <td>${item.content.substring(0, 50)}${
+              item.content.length > 50 ? "..." : ""
+            }</td>
+                    <td>${item.status === "active" ? "啟用" : "停用"}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon" onclick="editAnnouncement('${
+                              item.id
+                            }')">編輯</button>
+                            <button class="btn-icon" onclick="deleteAnnouncement('${
+                              item.id
+                            }')">刪除</button>
+                        </div>
+                    </td>
+                </tr>
+            `
+          )
+          .join("");
+      }
+
+      async function saveAnnouncement() {
+        const id = document.getElementById("announcementId").value;
+        const title = document.getElementById("announcementTitle").value.trim();
+        const content = document
+          .getElementById("announcementContent")
+          .value.trim();
+        const status = document.getElementById("announcementStatus").value;
+
+        if (!title || !content) {
+          alert("請填寫必填欄位！");
+          return;
+        }
+
+        if (id) {
+          const index = announcements.findIndex((a) => a.id === id);
+          announcements[index] = { id, title, content, status };
+        } else {
+          const newId = "ann_" + Date.now();
+          announcements.push({ id: newId, title, content, status });
+        }
+
+        await saveData("announcements", announcements);
+        resetAnnouncementForm();
+        renderAnnouncements();
+        updateStats();
+        alert("儲存成功！");
+      }
+
+      function editAnnouncement(id) {
+        const item = announcements.find((a) => a.id === id);
+        if (item) {
+          document.getElementById("announcementId").value = item.id;
+          document.getElementById("announcementTitle").value = item.title;
+          document.getElementById("announcementContent").value = item.content;
+          document.getElementById("announcementStatus").value = item.status;
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+
+      async function deleteAnnouncement(id) {
+        if (!confirm("確定要刪除這則公告嗎？")) return;
+        announcements = announcements.filter((a) => a.id !== id);
+        await saveData("announcements", announcements);
+        renderAnnouncements();
+        updateStats();
+        alert("刪除成功！");
+      }
+
+      function resetAnnouncementForm() {
+        document.getElementById("announcementId").value = "";
+        document.getElementById("announcementTitle").value = "";
+        document.getElementById("announcementContent").value = "";
+        document.getElementById("announcementStatus").value = "active";
+      }
+
+      // ============ 活動管理 ============
+      function renderEvents() {
+        const tbody = document.getElementById("eventList");
+        if (events.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><p>目前沒有任何活動</p></td></tr>';
+          return;
+        }
+
+        const statusMap = {
+          upcoming: "即將舉行",
+          ongoing: "進行中",
+          completed: "已結束",
+        };
+
+        tbody.innerHTML = events
+          .map(
+            (item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>${item.date}</td>
+                    <td>${item.location}</td>
+                    <td>${statusMap[item.status]}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon" onclick="editEvent('${
+                              item.id
+                            }')">編輯</button>
+                            <button class="btn-icon" onclick="deleteEvent('${
+                              item.id
+                            }')">刪除</button>
+                        </div>
+                    </td>
+                </tr>
+            `
+          )
+          .join("");
+      }
+
+      async function saveEvent() {
+        const id = document.getElementById("eventId").value;
+        const name = document.getElementById("eventName").value.trim();
+        const date = document.getElementById("eventDate").value;
+        const location = document.getElementById("eventLocation").value.trim();
+        const description = document
+          .getElementById("eventDescription")
+          .value.trim();
+        const status = document.getElementById("eventStatus").value;
+
+        if (!name || !date || !location) {
+          alert("請填寫必填欄位！");
+          return;
+        }
+
+        if (id) {
+          const index = events.findIndex((e) => e.id === id);
+          events[index] = { id, name, date, location, description, status };
+        } else {
+          const newId = "evt_" + Date.now();
+          events.push({ id: newId, name, date, location, description, status });
+        }
+
+        await saveData("events", events);
+        resetEventForm();
+        renderEvents();
+        updateStats();
+        alert("儲存成功！");
+      }
+
+      function editEvent(id) {
+        const item = events.find((e) => e.id === id);
+        if (item) {
+          document.getElementById("eventId").value = item.id;
+          document.getElementById("eventName").value = item.name;
+          document.getElementById("eventDate").value = item.date;
+          document.getElementById("eventLocation").value = item.location;
+          document.getElementById("eventDescription").value =
+            item.description || "";
+          document.getElementById("eventStatus").value = item.status;
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+
+      async function deleteEvent(id) {
+        if (!confirm("確定要刪除這個活動嗎？")) return;
+        events = events.filter((e) => e.id !== id);
+        await saveData("events", events);
+        renderEvents();
+        updateStats();
+        alert("刪除成功！");
+      }
+
+      function resetEventForm() {
+        document.getElementById("eventId").value = "";
+        document.getElementById("eventName").value = "";
+        document.getElementById("eventDate").value = "";
+        document.getElementById("eventLocation").value = "";
+        document.getElementById("eventDescription").value = "";
+        document.getElementById("eventStatus").value = "upcoming";
+      }
+
+      // ============ 票種管理 ============
+      function renderTickets() {
+        const tbody = document.getElementById("ticketList");
+        if (tickets.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><p>目前沒有任何票種</p></td></tr>';
+          return;
+        }
+
+        const statusMap = {
+          available: "可購買",
+          soldout: "售完",
+          disabled: "停售",
+        };
+
+        tbody.innerHTML = tickets
+          .map(
+            (item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>NT$ ${item.price}</td>
+                    <td>${item.quantity}</td>
+                    <td>${statusMap[item.status]}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon" onclick="editTicket('${
+                              item.id
+                            }')">編輯</button>
+                            <button class="btn-icon" onclick="deleteTicket('${
+                              item.id
+                            }')">刪除</button>
+                        </div>
+                    </td>
+                </tr>
+            `
+          )
+          .join("");
+      }
+
+      async function saveTicket() {
+        const id = document.getElementById("ticketId").value;
+        const name = document.getElementById("ticketName").value.trim();
+        const price = document.getElementById("ticketPrice").value;
+        const quantity = document.getElementById("ticketQuantity").value;
+        const description = document
+          .getElementById("ticketDescription")
+          .value.trim();
+        const status = document.getElementById("ticketStatus").value;
+
+        if (!name || !price || !quantity) {
+          alert("請填寫必填欄位！");
+          return;
+        }
+
+        if (id) {
+          const index = tickets.findIndex((t) => t.id === id);
+          tickets[index] = {
+            id,
+            name,
+            price: parseInt(price),
+            quantity: parseInt(quantity),
+            description,
+            status,
+          };
+        } else {
+          const newId = "tkt_" + Date.now();
+          tickets.push({
+            id: newId,
+            name,
+            price: parseInt(price),
+            quantity: parseInt(quantity),
+            description,
+            status,
+          });
+        }
+
+        await saveData("tickets", tickets);
+        resetTicketForm();
+        renderTickets();
+        updateStats();
+        alert("儲存成功！");
+      }
+
+      function editTicket(id) {
+        const item = tickets.find((t) => t.id === id);
+        if (item) {
+          document.getElementById("ticketId").value = item.id;
+          document.getElementById("ticketName").value = item.name;
+          document.getElementById("ticketPrice").value = item.price;
+          document.getElementById("ticketQuantity").value = item.quantity;
+          document.getElementById("ticketDescription").value =
+            item.description || "";
+          document.getElementById("ticketStatus").value = item.status;
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+
+      async function deleteTicket(id) {
+        if (!confirm("確定要刪除這個票種嗎？")) return;
+        tickets = tickets.filter((t) => t.id !== id);
+        await saveData("tickets", tickets);
+        renderTickets();
+        updateStats();
+        alert("刪除成功！");
+      }
+
+      function resetTicketForm() {
+        document.getElementById("ticketId").value = "";
+        document.getElementById("ticketName").value = "";
+        document.getElementById("ticketPrice").value = "";
+        document.getElementById("ticketQuantity").value = "";
+        document.getElementById("ticketDescription").value = "";
+        document.getElementById("ticketStatus").value = "available";
+      }
+
+      // 初始化
+      init();
+    </script>
+  </body>
+</html>

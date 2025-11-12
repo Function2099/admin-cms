@@ -1,0 +1,212 @@
+.welcome {
+  background-color: #000000;
+  color: #ffffff;
+  text-align: center;
+  padding: 40px 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.summary-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.box {
+  min-height: auto;
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  justify-content: center;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+}
+
+.box:hover {
+  transform: translateY(-4px);
+}
+
+.box h3 {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.box p {
+  font-size: 28px;
+  font-weight: bold;
+  color: #313235;
+  margin: 0;
+}
+
+/* ========== Dashboard 活動卡片區域 ========== */
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-header h2 {
+  font-size: 20px;
+  color: #333;
+}
+
+.refresh-btn {
+  background: #e8f1ff;
+  border: none;
+  color: #0078ff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.refresh-btn:hover {
+  background: #d5e8ff;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+  padding: 0 10px;
+  justify-items: stretch;
+  align-items: stretch;
+  /* 卡片在每格中置中 */
+  max-width: 1200px;
+  /* 限制最大寬度（≈ 3 張卡片 + 間距） */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 1200px) {
+  .card-container {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    max-width: 600px;
+  }
+}
+
+
+
+/* 若無活動顯示 */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 0;
+  background: #fff;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+}
+
+.add-btn {
+  background: #0078ff;
+  color: white;
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.add-btn:hover {
+  background: #005fd1;
+}
+
+/* 活動卡片樣式 */
+/* ===== 活動卡片區域 ===== */
+/* 整體卡片：上下結構 */
+.activity-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.activity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* 上半部：圖片 + 標題 + 日期 */
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #eee;
+}
+
+.card-top img {
+  width: 90px;
+  height: 90px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.card-content h3 {
+  font-size: 16px;
+  color: #222;
+  margin: 0 0 6px 0;
+  font-weight: bold;
+}
+
+.card-content .meta {
+  font-size: 13px;
+  color: #777;
+  line-height: 1.4;
+}
+
+.card-content .meta span {
+  display: block;
+}
+
+/* 下半部：統計資訊區 */
+.card-bottom {
+  padding: 12px 18px 16px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 20px;
+  text-align: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-item .label {
+  font-size: 13px;
+  color: #666;
+}
+
+.stat-item .value {
+  font-size: 16px;
+  font-weight: bold;
+  color: #222;
+  margin-top: 4px;
+}

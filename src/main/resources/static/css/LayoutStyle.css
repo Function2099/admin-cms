@@ -1,7 +1,7 @@
     body {
         margin: 0;
         font-family: Arial, sans-serif;
-        overflow: hidden;
+        /* overflow: hidden; */
     }
 
 
@@ -69,7 +69,7 @@
         flex: 1;
         padding: 25px;
         margin-left: 200px;
-        width: calc(100% - 230px);
+        width: calc(100% - 200px);
         overflow-y: auto;
         height: 100vh;
         background-color: #f4f4f4;

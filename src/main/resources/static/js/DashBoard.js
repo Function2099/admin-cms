@@ -1,19 +1,17 @@
 function initActivityCards() {
-  const container = document.getElementById("activityContainer");
-  const empty = document.getElementById("emptyState");
-  if (!container || !empty) return;
+  const $container = $("#activityContainer");
+  const $empty = $("#emptyState");
 
-  fetch("/api/events")
-    .then(response => {
-      if (!response.ok) throw new Error("HTTP 錯誤：" + response.status);
-      return response.json();
-    })
-    .then(activities => {
+  if ($container.length === 0 || $empty.length === 0) return;
+
+  $.getJSON("/api/events")
+    .done(activities => {
       if (!activities || activities.length === 0) {
-        empty.style.display = "block";
+        $empty.show();
         return;
       }
-      empty.style.display = "none";
+
+      $empty.hide();
 
       activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       activities.slice(0, 3).forEach(act => {
@@ -22,50 +20,54 @@ function initActivityCards() {
         const eventTime = isNaN(eventDate)
           ? "未設定"
           : `${eventDate.getFullYear()}年${String(eventDate.getMonth() + 1).padStart(2, '0')}月${String(eventDate.getDate()).padStart(2, '0')}日 ${String(eventDate.getHours()).padStart(2, '0')}:${String(eventDate.getMinutes()).padStart(2, '0')}`;
+
         const avgStay = act.avgStayTime
           ? `${Math.floor(act.avgStayTime / 60)}分${act.avgStayTime % 60}秒`
           : '—';
 
-        const card = document.createElement("div");
-        card.className = "activity-card";
-        card.innerHTML = `
-          <div class="card-top">
-            <img src="${imgUrl}" alt="活動圖片">
-            <div class="card-content">
-              <h3>${act.title}</h3>
-              <div class="meta">
-                <span class="created">建立：${act.createdAt || '未知時間'}</span>
-                <span class="event-time">活動時間：<wbr>${eventTime}</span>
+        const cardHtml = `
+          <div class="activity-card">
+            <div class="card-top">
+              <img src="${imgUrl}" alt="活動圖片">
+              <div class="card-content">
+                <h3>${act.title}</h3>
+                <div class="meta">
+                  <span class="created">建立：${act.createdAt || "未知時間"}</span>
+                  <span class="event-time">活動時間：<wbr>${eventTime}</span>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="card-bottom">
-            <div class="stats">
-              <div class="stat-item">
-                <span class="label">👁️ 瀏覽量</span>
-                <span class="value">${act.views ?? 0}</span>
-              </div>
-              <div class="stat-item">
-                <span class="label">⏱ 平均停留</span>
-                <span class="value">${avgStay}</span>
-              </div>
-              <div class="stat-item">
-                <span class="label">🎟️ 售出票數</span>
-                <span class="value">${act.ticketsSold ?? 0}</span>
-              </div>
-              <div class="stat-item">
-                <span class="label">🔗 分享數</span>
-                <span class="value">${act.shares ?? 0}</span>
+            <div class="card-bottom">
+              <div class="stats">
+                <div class="stat-item">
+                  <span class="label">👁️ 瀏覽量</span>
+                  <span class="value">${act.views ?? 0}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="label">⏱ 平均停留</span>
+                  <span class="value">${avgStay}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="label">🎟️ 售出票數</span>
+                  <span class="value">${act.ticketsSold ?? 0}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="label">🔗 分享數</span>
+                  <span class="value">${act.shares ?? 0}</span>
+                </div>
               </div>
             </div>
           </div>
         `;
-        container.appendChild(card);
+
+        $container.append(cardHtml);
       });
     })
-    .catch(error => {
-      console.error("❌ 無法載入活動資料:", error);
-      empty.style.display = "block";
-      empty.innerHTML = `<p style="color:red;">載入資料失敗，請稍後再試。</p>`;
+    .fail(() => {
+      console.error("無法載入活動資料");
+
+      $empty.show().html(`
+        <p style="color:red;">載入資料失敗，請稍後再試。</p>
+      `);
     });
 }

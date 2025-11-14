@@ -1,5 +1,4 @@
 function loadContent(event, link) {
-    console.log("我成功了")
     event.preventDefault();
 
     document.querySelectorAll(".sidebar li")

@@ -1,5 +1,68 @@
 <div th:fragment="content">
   <h2>活動管理</h2>
-  <p>這裡是活動管理的內容</p>
-  <!-- 公告內容 -->
+  <section>
+    <h3>新增活動</h3>
+    <form
+      id="eventForm"
+      th:action="@{/event/create}"
+      method="post"
+      enctype="multipart/form-data"
+    >
+      <div>
+        <label for="cover">活動封面：</label>
+        <input type="file" id="cover" name="cover" accept="image/*" />
+      </div>
+      <div>
+        <label for="title">活動名稱：</label>
+        <input type="text" id="title" name="title" required />
+      </div>
+      <div>
+        <label for="eventStart">活動開始日期：</label>
+        <input
+          type="datetime-local"
+          id="eventStart"
+          name="eventStart"
+          required
+        />
+      </div>
+      <div>
+        <label for="eventEnd">活動結束日期：</label>
+        <input type="datetime-local" id="eventEnd" name="eventEnd" required />
+      </div>
+      <div>
+        <label for="ticketStart">售票開始日期：</label>
+        <input
+          type="datetime-local"
+          id="ticketStart"
+          name="ticketStart"
+          required
+        />
+      </div>
+      <div>
+        <label for="ticketEnd">售票結束日期：</label>
+        <input type="datetime-local" id="ticketEnd" name="ticketEnd" required />
+      </div>
+      <div>
+        <label for="location">活動地點：</label>
+        <input type="text" id="location" name="location" required />
+      </div>
+      <div>
+        <label for="description">活動描述：</label>
+        <textarea id="description" name="description" rows="5"></textarea>
+        <!-- TinyMCE 初始化在 JS 中處理 -->
+      </div>
+      <div>
+        <button type="button">預覽</button>
+        <button type="submit">發佈活動</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 活動列表區塊 -->
+  <section>
+    <h3>活動列表</h3>
+    <div id="eventListContainer">
+      <!-- AJAX 載入活動列表 -->
+    </div>
+  </section>
 </div>

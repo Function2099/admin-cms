@@ -33,14 +33,22 @@ public class Event {
     @JsonManagedReference
     private CompanyProfile company;
 
-    private String title;
-    private String description;
+    private String title, address;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "event_time")
+    @Column(name = "event_start")
     private LocalDateTime eventTime;
+
+    @Column(name = "event_end")
+    private LocalDateTime eventEndTime;
+
+    @Column(name = "sale_start")
+    private LocalDateTime saleStart;
+
+    @Column(name = "sale_end")
+    private LocalDateTime saleEnd;
 
     private Integer views;
 
@@ -58,6 +66,6 @@ public class Event {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
     @JsonManagedReference("event-image")
-    private List<EventImage> images = new ArrayList<>();
+    private List<EventTitlePage> images = new ArrayList<>();
 
 }

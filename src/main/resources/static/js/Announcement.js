@@ -46,7 +46,7 @@ function initAnnouncement() {
         });
     });
 
-    // 點編輯
+    // 編輯
     $(document).off("click", ".edit-btn").on("click", ".edit-btn", function () {
         const $btn = $(this);
         const container = $btn.closest(".ann-item");

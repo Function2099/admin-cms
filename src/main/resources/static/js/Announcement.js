@@ -23,7 +23,7 @@ function initAnnouncement() {
         });
     }
 
-    // 表單送出（新增或編輯）
+    // 表單送出(新增或編輯)
     $(document).off("submit", "#anno-form").on("submit", "#anno-form", function (e) {
         e.preventDefault();
 
@@ -35,15 +35,20 @@ function initAnnouncement() {
         const url = id ? `/api/announcements/${id}` : "/api/announcements";
 
         $.ajax({
-            url,
-            method,
+            url: url,
+            method: method,
             contentType: "application/json",
             data: JSON.stringify({ title, content }),
             success: function () {
                 resetForm();
                 loadAnnouncements();
+            },
+            error: function (xhr) {
+                console.error("送出失敗：", xhr.responseText);
+                alert("送出失敗，請檢查格式或伺服器設定");
             }
         });
+
     });
 
     // 編輯
@@ -76,6 +81,12 @@ function initAnnouncement() {
         // 將目前這顆改為「取消」
         $btn.text("取消");
     });
+
+    $(document).off("click", "#cancel-edit-btn").on("click", "#cancel-edit-btn", function () {
+        console.log("取消編輯按鈕被點擊");
+        resetForm();
+    });
+
 
 
     // 刪除公告

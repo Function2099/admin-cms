@@ -54,12 +54,12 @@ public class EventApiController {
             // ✅ 設定預設公司與狀態
             User defaultUser = userRepository.findById(2L) // 例如 company@brand.com 的 ID
                     .orElseThrow(() -> new RuntimeException("使用者 ID 2 不存在"));
-            event.setUser(defaultUser);
+            event.setCompanyUser(defaultUser);
 
             EventStatus defaultStatus = eventStatusRepository.findById(2L)
                     .orElseThrow(() -> new RuntimeException("狀態 ID 2 不存在"));
 
-            event.setUser(defaultUser);
+            event.setCompanyUser(defaultUser);
             event.setStatusId(defaultStatus);
 
             // 儲存圖片

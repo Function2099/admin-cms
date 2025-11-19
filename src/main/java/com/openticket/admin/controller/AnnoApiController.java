@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.openticket.admin.entity.Announcement;
+import com.openticket.admin.entity.User;
 import com.openticket.admin.service.AnnouncementService;
 
 @RestController
@@ -31,6 +32,12 @@ public class AnnoApiController {
     // 新增公告
     @PostMapping
     public Announcement create(@RequestBody Announcement ann) {
+
+        // 這邊是硬資料，未來要引入登入驗證，取得用戶ID
+        User user = new User();
+        user.setId(2L);
+        ann.setUser(user);
+
         return service.create(ann);
     }
 
@@ -48,7 +55,7 @@ public class AnnoApiController {
         existing.setTitle(ann.getTitle());
         existing.setContent(ann.getContent());
 
-        return service.create(existing); // save() 同時支援 update
+        return service.create(existing);
     }
 
     // 刪除公告

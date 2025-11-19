@@ -1,11 +1,11 @@
 package com.openticket.admin.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,28 +17,38 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "announcement")
+@Table(name = "event_ticket_type")
 @Getter
 @Setter
-public class Announcement {
-
+public class EventTicketType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
-    private String content;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "custom_limit")
+    private Integer customLimit;
+
+    @Column(name = "custom_price")
+    private BigDecimal customPrice;
+
+    @Column(name = "description")
+    private String description;
+
+    // 所屬活動
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
+
+    // 使用哪個主辦方的模板
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ticket_template_id", nullable = false)
+    private TicketType ticketTemplate;
+
     @PrePersist
-    public void prePersist() {
+    public void onCreate() {
         createdAt = LocalDateTime.now();
     }
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
-    private User user;
 }

@@ -3,6 +3,9 @@ package com.openticket.admin.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,6 +30,7 @@ public class User {
     private String email;
 
     @Column(name = "password")
+    @JsonIgnore
     private String passwd;
 
     @Enumerated(EnumType.STRING)
@@ -43,9 +47,11 @@ public class User {
     private CompanyProfile companyProfile;
 
     @OneToMany(mappedBy = "user")
+    @JsonBackReference("announcement-user")
     private List<Announcement> announcements;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "companyUser")
+    @JsonBackReference
     private List<Event> events;
 
 }

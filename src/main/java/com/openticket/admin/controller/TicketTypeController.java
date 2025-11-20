@@ -30,6 +30,39 @@ public class TicketTypeController {
         return service.getAllDtos();
     }
 
+    @GetMapping("/for-event")
+    public List<TicketTypeDto> getForEvent() {
+
+        Long userId = 2L; // 之後做登入會改掉
+
+        return service.getAllForOrganizer(userId).stream()
+                .map(tt -> new TicketTypeDto(
+                        tt.getId(),
+                        tt.getName(),
+                        tt.getPrice(),
+                        tt.getIsLimited(),
+                        tt.getLimitQuantity(),
+                        tt.getDescription()))
+                .toList();
+    }
+
+    // ❸（新增）主辦方自己的票種管理頁 → 只顯示自己的自訂票
+    @GetMapping("/my")
+    public List<TicketTypeDto> getMyTickets() {
+
+        Long userId = 2L; // 之後做登入會改掉
+
+        return service.getCustom(userId).stream()
+                .map(tt -> new TicketTypeDto(
+                        tt.getId(),
+                        tt.getName(),
+                        tt.getPrice(),
+                        tt.getIsLimited(),
+                        tt.getLimitQuantity(),
+                        tt.getDescription()))
+                .toList();
+    }
+
     // 新增票種
     @PostMapping
     public TicketType create(@RequestBody TicketType tt) {

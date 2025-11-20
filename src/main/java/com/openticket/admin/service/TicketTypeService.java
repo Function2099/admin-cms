@@ -1,5 +1,6 @@
 package com.openticket.admin.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,24 @@ public class TicketTypeService {
         }
 
         return repo.save(tt);
+    }
+
+    // 🔵 新增：取得「系統模板」
+    public List<TicketType> getTemplates() {
+        return repo.findByIsDefaultFalse();
+    }
+
+    // 🔵 新增：取得某主辦方的自訂票
+    public List<TicketType> getCustom(Long userId) {
+        return repo.findByIsDefaultTrueAndUserId(userId);
+    }
+
+    // 🔵 新增：活動用 → 模板 + 自訂票
+    public List<TicketType> getAllForOrganizer(Long userId) {
+        List<TicketType> result = new ArrayList<>();
+        result.addAll(getTemplates());
+        result.addAll(getCustom(userId));
+        return result;
     }
 
     public TicketType update(Long id, TicketType newData) {

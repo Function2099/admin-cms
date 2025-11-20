@@ -69,7 +69,7 @@ function initTicketTypeLoader() {
     const dropdown = document.getElementById("ticketDropdown");
     if (!dropdown) return;
 
-    fetch("/api/tickets")
+    fetch("/api/tickets/for-event")
         .then((res) => res.json())
         .then((ticketTypes) => {
 

@@ -8,6 +8,7 @@ function initEvent() {
     initTabSwitching();
     loadTicketList();
     loadEventList();
+    initCancelEditButton();
 }
 
 // 活動建立送出按鈕初始化
@@ -96,10 +97,13 @@ function goEdit(id, btn) {
 
     if (editingEventId === id && btn.dataset.mode === "cancel") {
         resetEventForm();
+        ini
         editingEventId = null;
 
         btn.dataset.mode = "edit";
         btn.textContent = "編輯";
+        document.getElementById("eventCancelBtn").style.display = "inline-block";
+
         return;
     }
 
@@ -425,6 +429,7 @@ function resetEventForm() {
     // 重設提交按鈕
     const submitBtn = document.querySelector("#eventForm button[type='submit']");
     submitBtn.textContent = "發佈活動";
+    document.getElementById("eventCancelBtn").style.display = "none";
 
 }
 
@@ -517,4 +522,20 @@ function updateCoverPreview(fileOrUrl) {
     }
 
     preview.style.display = "block";
+}
+
+function initCancelEditButton() {
+    const cancelBtn = document.getElementById("eventCancelBtn");
+    cancelBtn.addEventListener("click", () => {
+        resetEventForm();
+        editingEventId = null;
+
+        // 把列表中的「取消」改回「編輯」
+        document.querySelectorAll(".edit-btn").forEach(b => {
+            b.dataset.mode = "edit";
+            b.textContent = "編輯";
+        });
+
+        cancelBtn.style.display = "none";
+    });
 }

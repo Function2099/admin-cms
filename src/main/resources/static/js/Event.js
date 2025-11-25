@@ -93,6 +93,7 @@ function initEventFormSubmit() {
     });
 }
 
+// 編輯按鈕
 function goEdit(id, btn) {
 
     if (editingEventId === id && btn.dataset.mode === "cancel") {
@@ -171,8 +172,8 @@ function goEdit(id, btn) {
             });
 
             // 改送出按鈕文字
-            const btn = document.querySelector("#eventForm button[type='submit']");
-            btn.textContent = "確認編輯";
+            const submitBtn = document.querySelector("#eventForm button[type='submit']");
+            submitBtn.textContent = "確認編輯";
 
             // 切換到 event tab
             showTab("event");

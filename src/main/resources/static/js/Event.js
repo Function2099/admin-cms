@@ -363,7 +363,7 @@ function loadTicketList() {
     const container = document.getElementById("ticketListContainer");
     if (!container) return;
 
-    fetch("/api/tickets")   // 目前你的 GET /api/tickets 回傳全部票種 DTO
+    fetch("/api/tickets")
         .then(res => res.json())
         .then(list => {
 

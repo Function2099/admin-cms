@@ -33,8 +33,7 @@ public class User {
     @JsonIgnore
     private String passwd;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "role")
     private Role role;
 
     @Column(name = "created_at")

@@ -1,6 +1,7 @@
 package com.openticket.admin.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,6 +57,13 @@ public class TicketTypeController {
         return service.getTemplateDtos();
     }
 
+    // 取得單一票種（編輯用）
+    @GetMapping("/{id}")
+    public TicketTypeDto getOne(@PathVariable Long id) {
+        // 之後可以加上「只能看自己的」的判斷
+        return service.getOneDto(id);
+    }
+
     // （新增）主辦方自己的票種管理頁 → 只顯示自己的自訂票
     @GetMapping("/my")
     public List<TicketTypeDto> getMyTickets() {
@@ -87,16 +95,15 @@ public class TicketTypeController {
 
     // 修改票種
     @PutMapping("/{id}")
-    public TicketType update(
-            @PathVariable Long id,
-            @RequestBody TicketType tt) {
-        return service.update(id, tt);
+    public TicketTypeDto update(@PathVariable Long id, @RequestBody TicketType tt) {
+        return service.updateDto(id, tt);
     }
 
     // 刪除票種
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public Map<String, Object> delete(@PathVariable Long id) {
         service.delete(id);
+        return Map.of("success", true);
     }
 
     @PostMapping("/apply/{templateId}")

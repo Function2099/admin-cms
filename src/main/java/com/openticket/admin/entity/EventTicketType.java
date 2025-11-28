@@ -28,6 +28,9 @@ public class EventTicketType {
     @Column(name = "is_limited", nullable = false)
     private Boolean isLimited;
 
+    @Column(name = "is_early_bird")
+    private Boolean isEarlyBird;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -47,6 +50,12 @@ public class EventTicketType {
     @JoinColumn(name = "ticket_template_id", nullable = false)
     private TicketType ticketTemplate;
 
+    // 早鳥票相關
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "early_bird_config_id")
+    private TicketDiscountConfig earlyBirdConfig;
+
+    // 自動填入時間
     @PrePersist
     public void onCreate() {
         createdAt = LocalDateTime.now();

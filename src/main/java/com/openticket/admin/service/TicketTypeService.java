@@ -66,7 +66,12 @@ public class TicketTypeService {
         tt.setName(newData.getName());
         tt.setPrice(newData.getPrice());
         tt.setIsLimited(newData.getIsLimited());
-        tt.setLimitQuantity(newData.getLimitQuantity());
+        if (Boolean.TRUE.equals(newData.getIsLimited())) {
+            tt.setLimitQuantity(newData.getLimitQuantity());
+        } else {
+            tt.setLimitQuantity(null);
+        }
+        tt.setDescription(newData.getDescription());
 
         return repo.save(tt);
     }
@@ -143,6 +148,31 @@ public class TicketTypeService {
         copy.setUser(u);
 
         return repo.save(copy);
+    }
+
+    public TicketTypeDto getOneDto(Long id) {
+        TicketType tt = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("票種不存在 ID=" + id));
+
+        // 這裡未做 userId 檢查，之後接登入再限制
+        return new TicketTypeDto(
+                tt.getId(),
+                tt.getName(),
+                tt.getPrice(),
+                tt.getIsLimited(),
+                tt.getLimitQuantity(),
+                tt.getDescription());
+    }
+
+    public TicketTypeDto updateDto(Long id, TicketType newData) {
+        TicketType tt = update(id, newData); // 你原本的更新方法
+        return new TicketTypeDto(
+                tt.getId(),
+                tt.getName(),
+                tt.getPrice(),
+                tt.getIsLimited(),
+                tt.getLimitQuantity(),
+                tt.getDescription());
     }
 
 }

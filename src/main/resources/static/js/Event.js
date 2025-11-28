@@ -1,4 +1,5 @@
 let editingEventId = null;
+let editingTicketId = null;
 
 // 查詢與排序狀態
 let eventQuery = {
@@ -64,20 +65,32 @@ function initEventFormSubmit() {
 
         rows.forEach((row) => {
             const checkbox = row.querySelector(".ticket-checkbox");
-            if (!checkbox.checked) return;
+            if (!checkbox || !checkbox.checked) return;
+
+            // 早鳥票欄位
+            const ebCheckbox = row.querySelector(".early-bird-checkbox");
+            const ebDaysInput = row.querySelector(".early-bird-days");
+            const ebDiscountInput = row.querySelector(".early-bird-discount");
 
             selectedTickets.push({
                 ticketTemplateId: parseInt(checkbox.value, 10),
+
                 customPrice: row.querySelector(".ticket-custom-price").value || null,
                 customLimit: row.querySelector(".ticket-custom-limit").value || null,
-                isEarlyBird: row.querySelector(".early-bird-checkbox").checked,
-                earlyBirdDays: row.querySelector(".early-bird-days").value || null,
-                discountRate: row.querySelector(".early-bird-discount").value
-                    ? row.querySelector(".early-bird-discount").value / 100
-                    : null,
 
+                isEarlyBird: ebCheckbox ? ebCheckbox.checked : false,
+
+                // 若沒 early bird 或沒有填值 → 預設值
+                earlyBirdDays: ebDaysInput && ebDaysInput.value !== ""
+                    ? parseInt(ebDaysInput.value, 10)
+                    : 5,
+
+                discountRate: ebDiscountInput && ebDiscountInput.value !== ""
+                    ? parseInt(ebDiscountInput.value, 10)
+                    : 85,
             });
         });
+
 
         formData.append("eventTicketsJson", JSON.stringify(selectedTickets));
 
@@ -173,11 +186,7 @@ function goEdit(id, btn) {
             }
 
             // 清空所有票種勾選與欄位
-            document.querySelectorAll("#ticketSelectTbody tr").forEach(row => {
-                row.querySelector(".ticket-checkbox").checked = false;
-                row.querySelector(".ticket-custom-price").value = "";
-                row.querySelector(".ticket-custom-limit").value = "";
-            });
+            clearAllTicketRows()
 
             // 還原已選票種
             ev.selectedTickets?.forEach(t => {
@@ -195,6 +204,29 @@ function goEdit(id, btn) {
                     row.querySelector(".ticket-custom-limit").value = t.customLimit;
                 } else {
                     row.querySelector(".ticket-custom-limit").value = "";
+                }
+
+                // 回填早鳥設定
+                const earlyBirdCheckbox = row.querySelector(".early-bird-checkbox");
+
+                // 1. 設定早鳥啟用狀態
+                earlyBirdCheckbox.checked = t.isEarlyBird === true;
+
+                // 2. 立即觸發 change()，讓欄位生成
+                earlyBirdCheckbox.dispatchEvent(new Event("change"));
+
+                // 3. 欄位建立後再抓
+                const earlyBirdDaysInput = row.querySelector(".early-bird-days");
+                const discountRateInput = row.querySelector(".early-bird-discount");
+
+                // 4. 回填天數
+                if (earlyBirdDaysInput) {
+                    earlyBirdDaysInput.value = t.earlyBirdDays ?? "";
+                }
+
+                // 5. 回填折扣
+                if (discountRateInput) {
+                    discountRateInput.value = t.discountRate ?? "";
                 }
             });
 
@@ -232,7 +264,7 @@ function initTicketDropdownToggle() {
     }
 }
 
-// 票種載入變成表格格式
+// 活動區塊的票種載入
 function initTicketTypeLoader() {
     const dropdown = document.getElementById("ticketDropdown");
     if (!dropdown) return;
@@ -307,7 +339,7 @@ function initTicketTypeLoader() {
         });
 }
 
-// 顯示勾選早鳥票後出現的欄位
+// 顯示勾選早鳥票後出現的欄位方法
 function earlyBirdForm(row) {
     const ebCheck = row.querySelector(".early-bird-checkbox");
     const ebDaysCell = row.querySelector(".eb-days-cell");
@@ -360,7 +392,6 @@ function earlyBirdForm(row) {
 
 }
 
-
 function initLimitQuantityToggle() {
     const isLimitedSelect = document.getElementById("isLimited");
     const limitQuantityContainer = document.getElementById("limitQuantityContainer");
@@ -391,8 +422,19 @@ function initTicketFormSubmit() {
             description: form.ticketDescription.value,
         };
 
-        fetch("/api/tickets", {
-            method: "POST",
+        let url = "/api/tickets";
+        let method = "POST";
+        let isEdit = false;
+
+        if (editingTicketId !== null) {
+            url = `/api/tickets/${editingTicketId}`;
+            method = "PUT";
+            isEdit = true;
+        }
+
+
+        fetch(url, {
+            method: method,
             headers: {
                 "Content-Type": "application/json",
             },
@@ -403,12 +445,15 @@ function initTicketFormSubmit() {
                 return res.json();
             })
             .then((data) => {
-                alert(`票種「${data.name}」已新增！`);
-                form.reset();
-                document.getElementById("limitQuantityContainer").style.display = "none";
-                initTicketTypeLoader();
-                loadTicketTemplates();
-                loadMyTickets();
+                alert(
+                    isEdit
+                        ? `票種「${data.name ?? ""}」已更新！`
+                        : `票種「${data.name}」已新增！`
+                );
+                resetTicketForm(); // 重置表單
+                initTicketTypeLoader(); // 重新載入活動用票種
+                loadTicketTemplates();  // 重新載入票種模板
+                loadMyTickets(); // 重新載入自訂票種
             })
             .catch((err) => {
                 console.error("票種建立失敗：", err);
@@ -466,7 +511,7 @@ function initTabSwitching() {
     });
 }
 
-
+// 清空活動表單方法
 function resetEventForm() {
 
     editingEventId = null;
@@ -484,6 +529,8 @@ function resetEventForm() {
     // 清空封面 preview + 檔名
     updateCoverPreview(null);
 
+    clearAllTicketRows()
+
     // 重設提交按鈕
     const submitBtn = document.querySelector("#eventForm button[type='submit']");
     submitBtn.textContent = "發佈活動";
@@ -491,7 +538,21 @@ function resetEventForm() {
 
 }
 
-//載入活動表單用的
+function clearAllTicketRows() {
+    document.querySelectorAll("#ticketSelectTbody tr").forEach(row => {
+        row.querySelector(".ticket-checkbox").checked = false;
+        row.querySelector(".ticket-custom-price").value = "";
+        row.querySelector(".ticket-custom-limit").value = "";
+
+        // Early bird 清空
+        row.querySelector(".early-bird-checkbox").checked = false;
+        row.querySelector(".eb-days-cell").innerHTML = "";
+        row.querySelector(".eb-discount-cell").innerHTML = "";
+        row.querySelector(".eb-final-cell").innerHTML = "";
+    });
+}
+
+//載入活動表單
 function loadEventList() {
     const container = document.getElementById("eventListContainer");
     if (!container) return;
@@ -713,7 +774,6 @@ function gotoPage(p) {
     loadEventList();
 }
 
-
 function loadTicketTemplates() {
     fetch("/api/tickets/templates")
         .then(res => res.json())
@@ -722,7 +782,7 @@ function loadTicketTemplates() {
             tbody.innerHTML = "";
 
             data.forEach(t => {
-                // 用 data-ticket 存一整個 JSON（用單引號 escape 一下避免炸掉）
+                // 用 data-ticket 存一整個 JSON(用單引號 escape 一下避免炸掉）
                 const ticketJson = JSON
                     .stringify(t)
                     .replace(/'/g, "&#39;");
@@ -783,6 +843,7 @@ function applyTemplate(button) {
 }
 
 
+// 載入自訂表單列表
 function loadMyTickets() {
     fetch("/api/tickets/my")
         .then(res => res.json())
@@ -800,10 +861,139 @@ function loadMyTickets() {
                         <td>${t.isLimited ? "是" : "否"}</td>
                         <td>${t.limitQuantity ?? "-"}</td>
                         <td>${t.description ?? ""}</td>
-                        <td><button onclick="editTicket(${t.id})">編輯</button></td>
+                        <td>
+                            <button class="ticket-edit-btn"
+                                    data-mode="edit"
+                                    onclick="editTicket(${t.id}, this)">
+                                編輯
+                            </button>
+                        </td>
                         <td><button onclick="deleteTicket(${t.id})">刪除</button></td>
                     </tr>
                 `;
             });
         });
 }
+
+function deleteTicket(id) {
+    if (!confirm("確定要刪除此票種嗎？")) return;
+
+    fetch(`/api/tickets/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token"),
+        },
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("刪除成功");
+                if (editingTicketId === id) {
+                    resetTicketForm();
+                }
+
+                loadMyTickets();  // 刷新列表
+            } else {
+                alert(data.message || "刪除失敗");
+            }
+        });
+}
+
+// 編輯票種
+function editTicket(id, btn) {
+
+    // 如果已經在編輯這一筆，而且按鈕現在是「取消」→ 直接還原
+    if (editingTicketId === id && btn.dataset.mode === "cancel") {
+        resetTicketForm();
+        return;
+    }
+
+    // 先把其他票種的按鈕恢復成「編輯」
+    document.querySelectorAll(".ticket-edit-btn").forEach(b => {
+        b.dataset.mode = "edit";
+        b.textContent = "編輯";
+    });
+
+    // 這顆按鈕切換成「取消」
+    btn.dataset.mode = "cancel";
+    btn.textContent = "取消";
+
+    fetch(`/api/tickets/${id}`)
+        .then(res => res.json())
+        .then(t => {
+            editingTicketId = t.id;
+
+            const form = document.getElementById("ticketForm");
+            if (!form) return;
+
+            form.ticketName.value = t.name ?? "";
+            form.ticketPrice.value = t.price ?? "";
+
+            const limitContainer = document.getElementById("limitQuantityContainer");
+
+            if (t.isLimited) {
+                form.isLimited.value = "true";
+                if (limitContainer) limitContainer.style.display = "block";
+                form.limitQuantity.value = t.limitQuantity ?? "";
+            } else {
+                form.isLimited.value = "false";
+                if (limitContainer) limitContainer.style.display = "none";
+                form.limitQuantity.value = "";
+            }
+
+            form.ticketDescription.value = t.description ?? "";
+
+            // 送出按鈕文字改成「確認編輯」
+            const submitBtn = document.querySelector("#ticketForm button[type='submit']");
+            if (submitBtn) {
+                submitBtn.textContent = "確認編輯";
+            }
+
+            // 自動切換到「票種」分頁
+            showTab("ticket");
+        })
+        .catch(err => {
+            console.error("載入票種失敗：", err);
+            alert("無法載入票種資料");
+        });
+}
+
+
+// 取消票種
+function cancelEditTicket(btn) {
+    resetTicketForm();
+
+    editingTicketId = null;
+
+    btn.textContent = "編輯";
+    btn.onclick = () => editTicketForm(btn.dataset.id, btn);
+}
+
+function resetTicketForm() {
+    const form = document.getElementById("ticketForm");
+    if (form) {
+        form.reset();
+    }
+
+    // 限量區塊收起來
+    const limitContainer = document.getElementById("limitQuantityContainer");
+    if (limitContainer) {
+        limitContainer.style.display = "none";
+    }
+
+    // 狀態回到「新增模式」
+    editingTicketId = null;
+
+    // 送出按鈕文字改回「新增票種」
+    const submitBtn = document.querySelector("#ticketForm button[type='submit']");
+    if (submitBtn) {
+        submitBtn.textContent = "新增票種";
+    }
+
+    // 把列表中的編輯按鈕都改回「編輯」
+    document.querySelectorAll(".ticket-edit-btn").forEach(b => {
+        b.dataset.mode = "edit";
+        b.textContent = "編輯";
+    });
+}
+

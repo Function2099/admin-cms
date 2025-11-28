@@ -27,7 +27,7 @@ function loadContent(event, link) {
     history.pushState(
         null,
         "",
-        "/admin/dashboard" + (logicalPath ? "/" + logicalPath : ""));
+        "/organizer/dashboard" + (logicalPath ? "/" + logicalPath : ""));
 
     fetch(url)
         .then((response) => {

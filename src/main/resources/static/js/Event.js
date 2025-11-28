@@ -483,12 +483,12 @@ function showTab(tabName) {
 
 function initTabSwitching() {
     document.getElementById("eventTabBtn").addEventListener("click", () => {
-        history.pushState(null, "", "/admin/dashboard/event");
+        history.pushState(null, "", "/organizer/dashboard/event");
         showTab("event");
     });
 
     document.getElementById("ticketTabBtn").addEventListener("click", () => {
-        history.pushState(null, "", "/admin/dashboard/event/ticket");
+        history.pushState(null, "", "/organizer/dashboard/event/ticket");
         showTab("ticket");
     });
 

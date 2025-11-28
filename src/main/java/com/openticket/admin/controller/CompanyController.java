@@ -11,7 +11,7 @@ import com.openticket.admin.service.AnnouncementService;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/organizer")
 public class CompanyController {
 
     @Autowired
@@ -33,11 +33,11 @@ public class CompanyController {
     @GetMapping("/dashboard/**")
     public String dashboardSub(HttpServletRequest request, Model model) {
         String path = request.getRequestURI();
-        String subPath = path.replace("/admin/dashboard/", "");
+        String subPath = path.replace("/organizer/dashboard/", "");
 
         String fragmentPath;
 
-        // ⭐ 第一優先：所有 event/edit/** 都丟到 event fragment
+        // 所有 event/edit/** 都丟到 event fragment
         if (subPath.startsWith("event/edit")) {
             fragmentPath = "fragments/event :: content";
         } else {

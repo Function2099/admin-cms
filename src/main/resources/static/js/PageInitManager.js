@@ -1,23 +1,23 @@
 const PageInitializers = {
-    "/admin/dashboard": () => {
+    "/organizer/dashboard": () => {
         if (typeof initActivityCards === "function") initActivityCards();
     },
-    "/admin/dashboard/announcement": () => {
+    "/organizer/dashboard/announcement": () => {
         if (typeof initAnnouncement === "function") initAnnouncement();
     },
-    "/admin/dashboard/event": () => {
+    "/organizer/dashboard/event": () => {
         if (typeof initEvent === "function") initEvent();
     },
-    "/admin/dashboard/event/ticket": () => {
+    "/organizer/dashboard/event/ticket": () => {
         if (typeof initEvent === "function") initEvent();
     },
-    "/admin/dashboard/analytics/traffic": () => {
+    "/organizer/dashboard/analytics/traffic": () => {
         if (typeof initTrafficAnalytics === "function") initTrafficAnalytics();
     },
-    "/admin/dashboard/analytics/consumer": () => {
+    "/organizer/dashboard/analytics/consumer": () => {
         if (typeof initConsumerAnalytics === "function") initConsumerAnalytics();
     },
-    "/admin/dashboard/analytics/summary": () => {
+    "/organizer/dashboard/analytics/summary": () => {
         if (typeof initSummaryAnalytics === "function") initSummaryAnalytics();
     }
 };

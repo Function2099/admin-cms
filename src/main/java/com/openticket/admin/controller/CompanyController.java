@@ -50,7 +50,9 @@ public class CompanyController {
                 case "event/ticket":
                     fragmentPath = "fragments/event :: content";
                     break;
-
+                case "orders":
+                    fragmentPath = "fragments/orders :: content";
+                    break;
                 case "analytics/traffic":
                     fragmentPath = "fragments/analytics/traffic :: content";
                     break;
@@ -99,9 +101,10 @@ public class CompanyController {
         return "fragments/analytics/consumer :: content";
     }
 
-    @GetMapping("/analytics/summary-frag")
-    public String analyticsSummary() {
-        return "fragments/analytics/summary :: content";
+    // =============訂單紀錄=============
+    @GetMapping("/orders-frag")
+    public String ordersHistory() {
+        return "fragments/orders :: content";
     }
 
     // =============測試端=============

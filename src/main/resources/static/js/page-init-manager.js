@@ -17,8 +17,8 @@ const PageInitializers = {
     "/organizer/dashboard/analytics/consumer": () => {
         if (typeof initConsumerAnalytics === "function") initConsumerAnalytics();
     },
-    "/organizer/dashboard/analytics/summary": () => {
-        if (typeof initSummaryAnalytics === "function") initSummaryAnalytics();
+    "/organizer/dashboard/orders": () => {
+        if (typeof initOrders === "function") initOrders();
     }
 };
 

@@ -119,13 +119,7 @@ public class AnalyticsService {
 
                 // pie placeholder
                 Map<String, Integer> pie = new LinkedHashMap<>();
-                pie.put("成人", 0);
-                pie.put("兒童", 0);
-                pie.put("VIP", 0);
-                pie.put("自訂", 0);
-
                 item.setPie(pie);
-
                 dto.getCompare().put(id, item);
             }
 

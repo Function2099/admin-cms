@@ -57,9 +57,6 @@ public class CompanyController {
                 case "analytics/consumer":
                     fragmentPath = "fragments/analytics/consumer :: content";
                     break;
-                case "analytics/summary":
-                    fragmentPath = "fragments/analytics/summary :: content";
-                    break;
 
                 default:
                     fragmentPath = "fragments/dashboard :: content";

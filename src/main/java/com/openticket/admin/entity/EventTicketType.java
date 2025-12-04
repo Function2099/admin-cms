@@ -2,6 +2,7 @@ package com.openticket.admin.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -54,6 +56,10 @@ public class EventTicketType {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "early_bird_config_id")
     private TicketDiscountConfig earlyBirdConfig;
+
+    // 票種
+    @OneToMany(mappedBy = "eventTicketType")
+    private List<CheckoutOrder> checkoutOrders;
 
     // 自動填入時間
     @PrePersist

@@ -1,5 +1,8 @@
 package com.openticket.admin.controller;
 
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import com.openticket.admin.dto.AnalyticsDTO;
 import com.openticket.admin.service.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +20,11 @@ public class AnalyticsApiController {
     @GetMapping
     public AnalyticsDTO getAnalytics(
             @RequestParam List<Long> eventIds,
-            @RequestParam(defaultValue = "7") int period,
-            @RequestParam(defaultValue = "merge") String mode) {
-        return analyticsService.getAnalytics(eventIds, period, mode);
-    }
+            @RequestParam(defaultValue = "merge") String mode,
 
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return analyticsService.getAnalytics(eventIds, mode, startDate, endDate);
+    }
 }

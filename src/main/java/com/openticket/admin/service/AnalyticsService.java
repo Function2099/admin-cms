@@ -1,16 +1,26 @@
 package com.openticket.admin.service;
 
-import com.openticket.admin.dto.AnalyticsDTO;
-import com.openticket.admin.entity.EventDailyStats;
-import com.openticket.admin.entity.EventStats;
-import com.openticket.admin.repository.EventDailyStatsRepository;
-import com.openticket.admin.repository.EventStatsRepository;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
+import com.openticket.admin.dto.AnalyticsDTO;
+import com.openticket.admin.entity.EventDailyStats;
+import com.openticket.admin.entity.EventStats;
+import com.openticket.admin.repository.CheckoutOrderRepository;
+import com.openticket.admin.repository.EventDailyStatsRepository;
+import com.openticket.admin.repository.EventStatsRepository;
+import com.openticket.admin.repository.PaymentRepository;
 
 @Service
 public class AnalyticsService {
@@ -21,9 +31,25 @@ public class AnalyticsService {
     @Autowired
     private EventDailyStatsRepository eventDailyStatsRepository;
 
-    public AnalyticsDTO getAnalytics(List<Long> eventIds, int period, String mode) {
+    @Autowired
+    private PaymentRepository paymentRepository;
 
-        // ========== 建 DTO ==========
+    @Autowired
+    private CheckoutOrderRepository checkoutOrderRepository;
+
+    public AnalyticsDTO getAnalytics(
+            List<Long> eventIds,
+            String mode,
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        // (1) 修正時間區間
+        LocalDate today = (endDate != null ? endDate : LocalDate.now());
+        LocalDate start = (startDate != null ? startDate : today.minusDays(6));
+
+        int days = (int) ChronoUnit.DAYS.between(start, today) + 1;
+
+        // ================= DTO =================
         AnalyticsDTO dto = new AnalyticsDTO();
         dto.setKpi(new AnalyticsDTO.KPI());
         dto.setOverview(new AnalyticsDTO.Overview());
@@ -31,69 +57,74 @@ public class AnalyticsService {
         dto.setTicketPie(new AnalyticsDTO.TicketTypePie());
         dto.setCompare(new HashMap<>());
 
-        // ==========「還沒資料庫」的欄位，先一律給 0 ==========
-        // 之後你有訂單 / 票種統計再來補
-
-        // ====== 時間區間（先固定 7 天，period 你之後再用也行） ======
-        int days = 7;
-        LocalDate today = LocalDate.now();
-        LocalDate startDate = today.minusDays(days - 1);
-
-        // 做 labels：MM/dd
+        // labels
         List<String> labels = new ArrayList<>();
-        for (int i = days - 1; i >= 0; i--) {
-            LocalDate d = today.minusDays(i);
+        for (int i = 0; i < days; i++) {
+            LocalDate d = start.plusDays(i);
             labels.add(d.getMonthValue() + "/" + d.getDayOfMonth());
         }
 
-        // ========== 比較模式：每個活動拆開看 ==========
+        // ================= 比較模式 =================
         if ("compare".equalsIgnoreCase(mode)) {
 
             for (Long id : eventIds) {
 
                 AnalyticsDTO.CompareItem item = new AnalyticsDTO.CompareItem();
 
-                // 1. 折線圖：從 event_daily_stats 撈資料
+                // ==== 流量 ====
                 int[] trafficArr = new int[days];
-
-                List<EventDailyStats> dailyList = eventDailyStatsRepository.findByEventIdAndStatDateBetween(id,
-                        startDate, today);
+                List<EventDailyStats> dailyList = eventDailyStatsRepository.findByEventIdAndStatDateBetween(id, start,
+                        today);
 
                 for (EventDailyStats ds : dailyList) {
-                    long diff = ChronoUnit.DAYS.between(startDate, ds.getStatDate());
-                    if (diff < 0 || diff >= days)
-                        continue;
-                    int index = (int) diff;
-                    trafficArr[index] = ds.getDayViews();
+                    long diff = ChronoUnit.DAYS.between(start, ds.getStatDate());
+                    if (diff >= 0 && diff < days) {
+                        trafficArr[(int) diff] = ds.getDayViews();
+                    }
                 }
 
                 item.setLabels(labels);
                 item.setTraffic(Arrays.stream(trafficArr).boxed().toList());
 
-                // 目前沒有訂單 → sales 先全 0
-                item.setSales(Arrays.asList(0, 0, 0, 0, 0, 0, 0));
+                // ==== 銷售（日銷售量）====
+                int[] salesArr = new int[days];
+                LocalDateTime startTime = start.atStartOfDay();
+                LocalDateTime endTime = today.plusDays(1).atStartOfDay();
 
-                // 圓餅圖也還沒有實際資料 → 全 0
+                List<Object[]> salesRows = checkoutOrderRepository.findDailySalesByEvent(id, startTime, endTime);
+
+                for (Object[] row : salesRows) {
+                    LocalDate d = ((java.sql.Date) row[0]).toLocalDate();
+                    int qty = ((Number) row[1]).intValue();
+
+                    long diff = ChronoUnit.DAYS.between(start, d);
+                    if (diff >= 0 && diff < days) {
+                        salesArr[(int) diff] = qty;
+                    }
+                }
+
+                item.setSales(Arrays.stream(salesArr).boxed().toList());
+
+                // ==== KPI ====
+                int todayViews = eventDailyStatsRepository.sumTodayViews(id, today);
+                int todaySales = salesArr[days - 1];
+
+                AnalyticsDTO.KPI kpi = new AnalyticsDTO.KPI();
+                kpi.setTodayViews(todayViews);
+                kpi.setTodaySales(todaySales);
+                kpi.setWeekRevenue(0);
+                kpi.setConversionRate(todayViews == 0 ? 0 : (double) todaySales / todayViews);
+
+                item.setKpi(kpi);
+
+                // pie placeholder
                 Map<String, Integer> pie = new LinkedHashMap<>();
                 pie.put("成人", 0);
                 pie.put("兒童", 0);
                 pie.put("VIP", 0);
                 pie.put("自訂", 0);
+
                 item.setPie(pie);
-
-                // 2. KPI：今天瀏覽量從 daily stats 算
-                int todayViews = eventDailyStatsRepository.sumTodayViews(id, today);
-                int todaySales = 0; // 沒訂單資料 → 先 0
-                long weekRevenue = 0L; // 沒收入資料 → 先 0
-
-                AnalyticsDTO.KPI kpi = new AnalyticsDTO.KPI();
-                kpi.setTodayViews(todayViews);
-                kpi.setTodaySales(todaySales);
-                kpi.setWeekRevenue(weekRevenue);
-                kpi.setConversionRate(
-                        (todayViews == 0) ? 0.0 : (double) todaySales / todayViews);
-
-                item.setKpi(kpi);
 
                 dto.getCompare().put(id, item);
             }
@@ -101,75 +132,93 @@ public class AnalyticsService {
             return dto;
         }
 
-        // =====================================================================
-        // 合併模式（merge）
-        // =====================================================================
+        // ================= merge 模式 =================
 
-        // 合併結果初始化（保留你原本變數）
-        int[] trafficSum = new int[days];
-        int[] salesSum = new int[days]; // 現在沒資料，一律 0
+        int[] trafficSum = new int[days]; // 每天流量
+        int[] salesSum = new int[days]; // 每天收入（金額）
+        int[] ticketSum = new int[days]; // 每天售出票數（quantity）
 
-        Map<String, Integer> pieSum = new LinkedHashMap<>();
-        pieSum.put("成人", 0);
-        pieSum.put("兒童", 0);
-        pieSum.put("VIP", 0);
-        pieSum.put("自訂", 0);
+        // 查付款（銷售/收入）
+        LocalDateTime startTime = start.atStartOfDay();
+        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
 
-        int todayViews = 0;
-        int todaySales = 0;
-        long weekRevenue = 0;
-        long totalViews = 0;
-        long totalSales = 0;
-        long totalRevenue = 0;
+        // 把每天的收入算進 salesSum
+        List<Object[]> salesRaw = paymentRepository.findSalesBetween(eventIds, startTime, endTime);
 
-        // 1. 總瀏覽量：從 event_stats 撈
-        if (eventIds != null && !eventIds.isEmpty()) {
-            List<EventStats> list = eventStatsRepository.findByIdIn(eventIds);
-            for (EventStats s : list) {
-                // 假設 EventStats 的 PK 是 eventId
-                totalViews += (s.getViews() != null ? s.getViews() : 0);
-                // shares 之後要用也可以在這邊順便加總
-            }
+        // Map<Date, 金額(用integer)>
+        Map<LocalDate, Integer> salesMap = new HashMap<>();
+        for (Object[] row : salesRaw) {
+            LocalDate date = ((java.sql.Date) row[0]).toLocalDate();
+            BigDecimal amount = (BigDecimal) row[1];
+            salesMap.put(date, amount.intValue());
         }
 
-        // 2. 折線圖 + 今日瀏覽：從 event_daily_stats 撈
+        // 補到days的長度
+        for (int i = 0; i < days; i++) {
+            LocalDate d = start.plusDays(i);
+            salesSum[i] = salesMap.getOrDefault(d, 0);
+        }
+
+        // trafficSum ( 每日流量 ) + ticketSum ( 每日售出票數 )
         for (Long id : eventIds) {
 
-            List<EventDailyStats> dailyList = eventDailyStatsRepository.findByEventIdAndStatDateBetween(id, startDate,
+            // 流量:event_daily_stats
+            List<EventDailyStats> dailyList = eventDailyStatsRepository.findByEventIdAndStatDateBetween(id, start,
                     today);
 
             for (EventDailyStats ds : dailyList) {
-                long diff = ChronoUnit.DAYS.between(startDate, ds.getStatDate());
-                if (diff < 0 || diff >= days)
-                    continue;
-                int idx = (int) diff;
-                trafficSum[idx] += ds.getDayViews();
+                long diff = ChronoUnit.DAYS.between(start, ds.getStatDate());
+                if (diff >= 0 && diff < days) {
+                    trafficSum[(int) diff] += ds.getDayViews();
+                }
             }
 
-            // KPI 用：合併所有勾選活動的今日瀏覽
-            todayViews += eventDailyStatsRepository.sumTodayViews(id, today);
+            // 售出票數:
+            List<Object[]> qtyRows = checkoutOrderRepository.findDailySalesByEvent(id, startTime, endTime);
+
+            for (Object[] row : qtyRows) {
+                LocalDate d = ((java.sql.Date) row[0]).toLocalDate();
+                int qty = ((Number) row[1]).intValue();
+                long diff = ChronoUnit.DAYS.between(start, d);
+                if (diff >= 0 && diff < days) {
+                    ticketSum[(int) diff] += qty;
+                }
+            }
         }
 
-        // （目前沒有訂單/收入 → todaySales / weekRevenue / totalSales / totalRevenue 都維持 0）
+        // 取得日期區間的總量
+        long rangeViews = Arrays.stream(trafficSum).sum(); // 區間總瀏覽量
+        long totalRevenue = Arrays.stream(salesSum).sum(); // 區間總收入
+        long totalTickets = Arrays.stream(ticketSum).sum(); // 區間總售出票數
 
-        // ========== 填寫 DTO - KPI ==========
-        dto.getKpi().setTodayViews(todayViews);
-        dto.getKpi().setTodaySales(todaySales); // 現在是 0
-        dto.getKpi().setWeekRevenue(weekRevenue); // 現在是 0
+        // KPI 卡片
+        dto.getKpi().setTodayViews((int) rangeViews); // 瀏覽量
+        dto.getKpi().setTodaySales((int) totalTickets); // 售出票數
+        dto.getKpi().setWeekRevenue(totalRevenue); // 收入
         dto.getKpi().setConversionRate(
-                (todayViews == 0) ? 0.0 : (double) todaySales / todayViews);
+                rangeViews == 0 ? 0.0 : (double) totalTickets / rangeViews);
 
-        // ========== Overview ==========
+        // overview : 維持原本總數據的邏輯
+        long totalViews = 0;
+        List<EventStats> statsList = eventStatsRepository.findByIdIn(eventIds);
+        for (EventStats s : statsList) {
+            totalViews += (s.getViews() != null ? s.getViews() : 0);
+        }
+
+        // 總收入
+        long totalSales = totalRevenue;
+
         dto.getOverview().setTotalViews(totalViews);
-        dto.getOverview().setTotalSales(totalSales); // 現在是 0
-        dto.getOverview().setTotalRevenue(totalRevenue); // 現在是 0
+        dto.getOverview().setTotalSales(totalSales);
+        dto.getOverview().setTotalRevenue(totalRevenue);
         dto.getOverview().setTotalEvents(eventIds.size());
 
-        // ========== 折線圖 ==========
+        // 折線圖
         AnalyticsDTO.ChartData trafficData = new AnalyticsDTO.ChartData();
         trafficData.setLabels(labels);
         trafficData.setData(Arrays.stream(trafficSum).boxed().toList());
 
+        // 收入折線圖
         AnalyticsDTO.ChartData salesData = new AnalyticsDTO.ChartData();
         salesData.setLabels(labels);
         salesData.setData(Arrays.stream(salesSum).boxed().toList());
@@ -177,10 +226,25 @@ public class AnalyticsService {
         dto.getLineCharts().setTraffic(trafficData);
         dto.getLineCharts().setSales(salesData);
 
-        // ========== 圓餅圖（先全 0，之後有訂單再改） ==========
-        dto.getTicketPie().setLabels(new ArrayList<>(pieSum.keySet()));
-        dto.getTicketPie().setData(new ArrayList<>(pieSum.values()));
+        // 圓餅圖（真正的票種統計）
+        List<Object[]> pieRows = checkoutOrderRepository.findTicketPieData(
+                eventIds,
+                startTime,
+                endTime);
+
+        Map<String, Integer> pieMap = new LinkedHashMap<>();
+
+        for (Object[] row : pieRows) {
+            String ticketName = (String) row[0];
+            int qty = ((Number) row[1]).intValue();
+            pieMap.put(ticketName, qty);
+        }
+
+        // 放入 DTO
+        dto.getTicketPie().setLabels(new ArrayList<>(pieMap.keySet()));
+        dto.getTicketPie().setData(new ArrayList<>(pieMap.values()));
 
         return dto;
+
     }
 }

@@ -174,18 +174,6 @@ hr {
     /* border: 1px solid #ccc; */
 }
 
-/* 售出票種比例圖例樣式 (模仿圖片底部) */
-.legend-box {
-    text-align: center;
-    margin-top: -5px;
-    /* 稍微向上移動靠近圖表 */
-}
-
-.legend-item {
-    margin: 0 10px;
-    font-size: 0.9em;
-}
-
 /* 確保 canvas 響應式 */
 canvas {
     max-width: 100%;

@@ -2,6 +2,8 @@
 let chartTraffic = null;
 let chartSales = null;
 let chartPie = null;
+let allEvents = [];
+let visibleEvents = 10;
 
 // 顏色
 function getColorByIndex(i) {
@@ -12,17 +14,15 @@ function getColorByIndex(i) {
 // 主函式：讀取分析
 async function loadAnalytics() {
 
-    // === 取得勾選的活動 ===
+    // 取得勾選的活動
     const eventIds = [...document.querySelectorAll('.event-check:checked')]
         .map(e => e.value);
 
-    // === 取得模式：merge / compare ===
+    // 取得模式:merge / compare
     const mode = document.querySelector('input[name="mode"]:checked')?.value || "merge";
 
-    // 無活動 → 顯示空資料（全部為 0）
-
+    // 無活動 → 顯示空資料（全部為 0)
     if (eventIds.length === 0) {
-
         // KPI 清空
         document.getElementById("kpiViews").innerText = 0;
         document.getElementById("kpiSales").innerText = 0;
@@ -52,7 +52,7 @@ async function loadAnalytics() {
         if (chartSales) chartSales.destroy();
         chartSales = new Chart(document.getElementById("salesChart"), {
             type: "line",
-            data: { labels, datasets: [{ label: "銷售數量", data: zeros, borderColor: "#ccc" }] }
+            data: { labels, datasets: [{ label: "銷售收入", data: zeros, borderColor: "#ccc" }] }
         });
 
         // 圓餅圖
@@ -67,16 +67,24 @@ async function loadAnalytics() {
         return;
     }
 
+    const startDate = document.getElementById("dateStart")?.value || "";
+    const endDate = document.getElementById("dateEnd")?.value || "";
+
+    let params = eventIds.map(id => `eventIds=${id}`).join("&");
+    params += `&mode=${mode}`;
+
+    if (startDate) params += `&startDate=${startDate}`;
+    if (endDate) params += `&endDate=${endDate}`;
+
     // 呼叫後端 API
-    const query = eventIds.map(id => `eventIds=${id}`).join("&");
-    let resp = await fetch(`/api/analytics?${query}&mode=${mode}`);
+    let resp = await fetch(`/api/analytics?${params}`);
     let data = await resp.json();
     console.log("後端回傳資料:", data);
 
-    // 比較模式（compare）
+    // 比較模式(compare)
     if (mode === "compare") {
 
-        // ===== 流量圖（多條線） =====
+        // 流量圖（多條線）
         const datasetsTraffic = eventIds.map((id, index) => ({
             label: "活動 " + id,
             data: data.compare[id].traffic,
@@ -122,21 +130,13 @@ async function loadAnalytics() {
             }
         });
 
-        // ===== KPI：顯示合併（你要每活動 KPI 也可以額外做） =====
-        const sumViews = eventIds.reduce((sum, id) => sum + data.compare[id].kpi.todayViews, 0);
-        const sumSales = eventIds.reduce((sum, id) => sum + data.compare[id].kpi.todaySales, 0);
-        const sumRevenue = eventIds.reduce((sum, id) => sum + data.compare[id].kpi.weekRevenue, 0);
-
-        document.getElementById("kpiViews").innerText = sumViews;
-        document.getElementById("kpiSales").innerText = sumSales;
-        document.getElementById("kpiRevenue").innerText = sumRevenue;
-        document.getElementById("kpiConversion").innerText =
-            (sumViews === 0 ? 0 : (sumSales / sumViews * 100).toFixed(1)) + "%";
-
-        return; // compare 模式一定要 return
+        // 不支援KPI顯示(比較模式)
+        document.getElementById("kpiViews").innerText = "-";
+        document.getElementById("kpiSales").innerText = "-";
+        document.getElementById("kpiRevenue").innerText = "-";
+        document.getElementById("kpiConversion").innerText = "-";
+        return;
     }
-
-    // 合併模式（merge）
 
     // KPI
     document.getElementById("kpiViews").innerText = data.kpi.todayViews;
@@ -197,25 +197,88 @@ async function loadAnalytics() {
 async function loadFilterEventList() {
 
     const listContainer = document.getElementById("eventFilterList");
+    const loadMoreBtn = document.getElementById("loadMoreEventsBtn");
+    const searchInput = document.getElementById("eventSearch");
+
     if (!listContainer) return;
 
+    // 取得所有活動
     let resp = await fetch("/api/events/all");
-    let events = await resp.json();
+    allEvents = await resp.json();
 
-    // 清空舊的活動 (但不要清空 mode-selector)
+    // 排序:最新(id最大)→ 最舊
+    allEvents.sort((a, b) => b.id - a.id);
+
+    // 還原使用者勾選
+    let savedEvents = JSON.parse(localStorage.getItem("analytics_selectedEvents") || "[]");
+
+    // 如果完全沒有儲存過，預設選最新活動
+    if (savedEvents.length === 0 && allEvents.length > 0) {
+        const newestId = String(allEvents[0].id);
+        savedEvents = [newestId];
+        localStorage.setItem("analytics_selectedEvents", JSON.stringify(savedEvents));
+    }
+
+    setDefaultDateRange();
+
+    // 初始化：顯示前 10 個
+    visibleEvents = 10;
+
+    // 搜尋（即時搜索）
+    if (searchInput) {
+        searchInput.addEventListener("input", () => renderEventList());
+    }
+
+    // 顯示更多
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener("click", () => {
+            visibleEvents += 10;
+            renderEventList();
+        });
+    }
+
+    // 第一次渲染
+    renderEventList();
+}
+
+function renderEventList() {
+
+    const listContainer = document.getElementById("eventFilterList");
+    const loadMoreBtn = document.getElementById("loadMoreEventsBtn");
+    const searchInput = document.getElementById("eventSearch");
+
+    if (!listContainer) return;
+
     listContainer.innerHTML = "";
 
-    // 加入活動 checkbox
-    events.forEach(ev => {
+    // 從 localStorage 還原勾選
+    const savedEvents = JSON.parse(localStorage.getItem("analytics_selectedEvents") || "[]");
+
+    // 搜尋過濾
+    const keyword = searchInput?.value.trim() || "";
+    let filtered = allEvents.filter(ev =>
+        ev.title.includes(keyword) || String(ev.id).includes(keyword)
+    );
+
+    // 只顯示visibleEvents個
+    let toShow = filtered.slice(0, visibleEvents);
+
+    // 產生 checkbox
+    toShow.forEach(ev => {
+        const checked = savedEvents.includes(String(ev.id));
+
         listContainer.insertAdjacentHTML("beforeend", `
             <label>
-                <input type="checkbox" class="event-check" value="${ev.id}" checked>
+                <input type="checkbox" class="event-check" value="${ev.id}" ${checked ? "checked" : ""}>
                 ${ev.title}
             </label>
         `);
     });
 
-    // 重新綁定監聽
+    // 顯示更多按鈕
+    loadMoreBtn.style.display = (filtered.length > visibleEvents ? "block" : "none");
+
+    // 重新綁定事件（保留你原本方法）
     initEventSelectionListener();
 }
 
@@ -245,10 +308,10 @@ function initEventSelectionListener() {
 async function initTrafficAnalytics() {
     if (!document.getElementById("trafficChart")) return;
 
-    // ① 一定要先載入活動列表 (產生 checkbox)
+    // 要先載入活動列表 (產生 checkbox)
     await loadFilterEventList();
 
-    // ② 從 localStorage 還原活動選擇
+    // 從 localStorage 還原活動選擇
     const savedEvents = JSON.parse(localStorage.getItem("analytics_selectedEvents") || "[]");
     if (savedEvents.length > 0) {
         document.querySelectorAll(".event-check").forEach(cb => {
@@ -256,17 +319,49 @@ async function initTrafficAnalytics() {
         });
     }
 
-    // ③ 還原模式 (merge / compare)
+    // 還原日期
+    const savedStart = localStorage.getItem("analytics_date_start");
+    const savedEnd = localStorage.getItem("analytics_date_end");
+
+    if (savedStart) document.getElementById("dateStart").value = savedStart;
+    if (savedEnd) document.getElementById("dateEnd").value = savedEnd;
+
+
+    // 還原模式 (merge / compare)
     const savedMode = localStorage.getItem("analytics_mode");
     if (savedMode) {
         const radio = document.querySelector(`input[name='mode'][value='${savedMode}']`);
         if (radio) radio.checked = true;
     }
 
-    // ④ 一定要在 checkbox 生成後綁定監聽
     initEventSelectionListener();
 
-    // ⑤ 載入圖表
+    // 日期篩選
+    document.getElementById("dateStart").addEventListener("change", () => {
+        localStorage.setItem("analytics_date_start", document.getElementById("dateStart").value);
+        loadAnalytics();
+    });
+
+    document.getElementById("dateEnd").addEventListener("change", () => {
+        localStorage.setItem("analytics_date_end", document.getElementById("dateEnd").value);
+        loadAnalytics();
+    });
+
+
+    // 重製日期
+    document.getElementById("resetDateBtn").addEventListener("click", () => {
+        setDefaultDateRange();
+        loadAnalytics();
+    });
+
     loadAnalytics();
 }
 
+function setDefaultDateRange() {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 6);
+
+    document.getElementById("dateStart").value = start.toISOString().split("T")[0];
+    document.getElementById("dateEnd").value = end.toISOString().split("T")[0];
+}

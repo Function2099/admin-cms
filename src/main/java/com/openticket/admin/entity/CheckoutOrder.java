@@ -35,8 +35,8 @@ public class CheckoutOrder {
     private Order order;
 
     // price_at_purchase(購買時票價快照)
-    @Column(name = "price_at_purchase", nullable = false)
-    private java.math.BigDecimal priceAtPurchase;
+    @Column(name = "unit_price", nullable = false)
+    private java.math.BigDecimal unitPrice;
 
     // quantity(購買張數)
     @Column(nullable = false)

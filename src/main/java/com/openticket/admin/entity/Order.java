@@ -22,6 +22,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,26 +30,46 @@ public class Order {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // 對應所屬活動
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
     private Event event;
 
+    // 對應的預訂單
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservations_id")
+    private Reservation reservation;
+
+    // 購買者
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    // 發票資訊
+    @Column(name = "invoice_carrier_code")
     private String invoiceCarrierCode;
+
+    @Column(name = "invoice_carrier_type")
     private String invoiceCarrierType;
+
+    @Column(name = "invoice_donation_code")
     private String invoiceDonationCode;
+
+    @Column(name = "invoice_car_type")
     private String invoiceCarType;
+
+    @Column(name = "invoice_value")
     private String invoiceValue;
+
+    @Column(name = "invoice_type")
     private String invoiceType;
 
     private String status;
 
-    @Column(name = "total_amount")
+    @Column(name = "totalAmount")
     private BigDecimal totalAmount;
 
-    @Column(name = "user_id")
-    private Long userId;
-
+    // 與 CheckoutOrder 的一對多
     @OneToMany(mappedBy = "order")
     private List<CheckoutOrder> checkoutOrders;
-
 }

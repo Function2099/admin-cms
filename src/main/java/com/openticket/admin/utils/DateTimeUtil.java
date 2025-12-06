@@ -9,7 +9,7 @@ public class DateTimeUtil {
 
     public static String format(LocalDateTime dateTime) {
         if (dateTime == null) {
-            return "未設定"; // 👈 關鍵：處理 null
+            return "未設定";
         }
         return dateTime.format(FORMATTER);
     }

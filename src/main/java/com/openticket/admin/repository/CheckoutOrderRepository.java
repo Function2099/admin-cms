@@ -33,32 +33,32 @@ public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Lo
 
         // 查詢票種名稱邏輯(圓餅圖要用)
         @Query("""
-                        SELECT new com.openticket.admin.dto.TicketSalesDTO(
-                            tt.name,
-                            SUM(co.quantity)
-                        )
-                        FROM CheckoutOrder co
-                        JOIN co.eventTicketType ett
-                        JOIN ett.ticketTemplate tt
-                        WHERE ett.event.id = :eventId
-                        GROUP BY tt.name
-                        """)
+                SELECT new com.openticket.admin.dto.TicketSalesDTO(
+                tt.name,
+                SUM(co.quantity)
+                )
+                FROM CheckoutOrder co
+                JOIN co.eventTicketType ett
+                JOIN ett.ticketTemplate tt
+                WHERE ett.event.id = :eventId
+                GROUP BY tt.name
+                """)
         List<TicketSalesDTO> findTicketSalesByEventId(@Param("eventId") Long eventId);
 
         @Query("""
-                        SELECT tt.name AS ticketName,
-                                SUM(co.quantity) AS totalQty
-                        FROM CheckoutOrder co
-                        JOIN co.eventTicketType ett
-                        JOIN ett.ticketTemplate tt
-                        JOIN co.order o
-                        WHERE ett.event.id IN :eventIds
-                            AND o.createdAt BETWEEN :startTime AND :endTime
-                        GROUP BY tt.name
-                        """)
+                SELECT tt.name AS ticketName,
+                        SUM(co.quantity) AS totalQty
+                FROM CheckoutOrder co
+                JOIN co.eventTicketType ett
+                JOIN ett.ticketTemplate tt
+                JOIN co.order o
+                WHERE ett.event.id IN :eventIds
+                        AND o.createdAt BETWEEN :startTime AND :endTime
+                GROUP BY tt.name
+                """)
         List<Object[]> findTicketPieData(
-                        @Param("eventIds") List<Long> eventIds,
-                        @Param("startTime") LocalDateTime startTime,
-                        @Param("endTime") LocalDateTime endTime);
+                @Param("eventIds") List<Long> eventIds,
+                @Param("startTime") LocalDateTime startTime,
+                @Param("endTime") LocalDateTime endTime);
 
 }

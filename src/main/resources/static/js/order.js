@@ -1,13 +1,28 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    let selectedEventId = null;
     let selectedEvents = [];
-    let visibleCount = 10;
     let allOrderEvents = [];
+    let visibleCount = 10;
 
-    /* 選擇活動 */
+    // 保存活動選項
+    function saveSelectedEvents() {
+        sessionStorage.setItem("selectedEvents", JSON.stringify(selectedEvents));
+    }
+
+    function loadSelectedEvents() {
+        const saved = sessionStorage.getItem("selectedEvents");
+        if (saved) {
+            selectedEvents = JSON.parse(saved);
+        }
+    }
+
+    /* 初始化 */
+    loadSelectedEvents();
+    renderSelectedEvents();
+
+    /* 打開活動選單 */
     document.addEventListener("click", (e) => {
-        if (e.target && e.target.id === "openEventModalBtn") {
+        if (e.target.closest("#openEventModalBtn")) {
             document.getElementById("eventModal").style.display = "flex";
             loadOrderEventList();
         }
@@ -15,11 +30,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 關閉 modal */
     document.addEventListener("click", (e) => {
-        if (e.target.id === "eventModalClose") {
+        if (e.target.closest("#eventModalClose")) {
             document.getElementById("eventModal").style.display = "none";
         }
     });
-
 
     /* 搜尋活動 */
     document.addEventListener("input", (e) => {
@@ -28,16 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    /* 載入活動列表 */
     function loadOrderEventList(keyword = "") {
-
         fetch(`/api/events/my?keyword=${keyword}`)
             .then(resp => resp.json())
             .then(list => {
-
                 allOrderEvents = list;
                 visibleCount = 10;
-
                 renderOrderEventList();
             });
     }
@@ -46,7 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const listEl = document.getElementById("eventList");
         const moreEl = document.getElementById("eventShowMore");
-
         const slice = allOrderEvents.slice(0, visibleCount);
 
         let html = "";
@@ -54,9 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
             html += `
                 <label class="event-item">
                     <input type="checkbox"
-                           class="event-checkbox"
-                           data-id="${ev.id}"
-                           data-title="${ev.title}">
+                            class="event-checkbox"
+                            data-id="${ev.id}"
+                            data-title="${ev.title}">
                     <span>${ev.title}</span>
                 </label>
             `;
@@ -71,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 套用活動選取 */
     document.addEventListener("click", (e) => {
-        if (e.target.id === "eventModalApply") {
+        if (e.target.closest("#eventModalApply")) {
 
             const checks = document.querySelectorAll(".event-checkbox:checked");
             selectedEvents = [];
@@ -82,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     title: chk.dataset.title
                 });
             });
+            saveSelectedEvents();
 
             document.getElementById("eventModal").style.display = "none";
             renderSelectedEvents();
@@ -90,46 +100,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* 顯示更多 */
     document.addEventListener("click", (e) => {
-        if (e.target.id === "eventShowMore") {
+        if (e.target.closest("#eventShowMore")) {
             visibleCount += 10;
             renderOrderEventList();
         }
     });
 
     /* 查詢訂單 */
-    document.getElementById("orderSearchBtn").addEventListener("click", () => {
-        loadOrderList();
+    document.addEventListener("click", (e) => {
+        if (e.target.closest("#orderSearchBtn")) {
+            loadOrderList();
+        }
     });
 
     function loadOrderList() {
 
-        if (!selectedEventId) return;
+        if (selectedEvents.length === 0) return;
 
         let keyword = document.getElementById("orderSearchInput").value.trim();
 
-        fetch(`/api/orders?eventId=${selectedEventId}&keyword=${keyword}`)
+        let params = new URLSearchParams();
+
+        selectedEvents.forEach(ev => params.append("eventIds", ev.id));
+
+        if (keyword) params.append("keyword", keyword);
+
+        fetch(`/api/orders?` + params.toString())
             .then(resp => resp.json())
             .then(list => {
-
                 let html = "";
-
                 list.forEach(o => {
                     html += `
-                        <tr>
-                            <td>${o.orderId}</td>
-                            <td>${o.createdAt}</td>
-                            <td>${o.buyerName}</td>
-                            <td>${o.eventTitle}</td>
-                            <td>${o.ticketCount}</td>
-                            <td>${o.status}</td>
-                            <td><button onclick="showOrderDetail(${o.orderId})">...</button></td>
-                        </tr>
-                    `;
+                    <tr>
+                        <td>${o.orderId}</td>
+                        <td>${o.createdAt}</td>
+                        <td>${o.buyerName}</td>
+                        <td>${o.eventTitle}</td>
+                        <td>${o.ticketCount}</td>
+                        <td>${o.status}</td>
+                        <td><button onclick="showOrderDetail(${o.orderId})">...</button></td>
+                    </tr>
+                `;
                 });
-
                 document.getElementById("orderTableBody").innerHTML = html;
             });
     }
+
+
 
     function showOrderDetail(orderId) {
         alert("TODO: 未來做詳細訂單內容 orderId=" + orderId);
@@ -139,37 +156,41 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderSelectedEvents() {
         const box = document.getElementById("selectedEventBox");
 
-        // 沒選 → 顯示預設畫面
         if (selectedEvents.length === 0) {
             box.innerHTML = `
-                <button id="openEventModalBtn" class="select-event-btn">選擇活動</button>
-                <div class="placeholder">(尚未選擇活動)</div>
-            `;
-            selectedEventId = null;
+            <button id="openEventModalBtn" class="select-event-btn">選擇活動</button>
+            <div class="placeholder">(尚未選擇活動)</div>
+        `;
             return;
         }
 
-        // 有選 → 顯示活動清單
-        selectedEventId = selectedEvents[0].id;
-
         let html = "<div class='event-selected-list'>";
+
         selectedEvents.forEach(ev => {
             html += `
-                <span class="event-selected-item" onclick="switchEvent(${ev.id})">
-                    ${ev.title}
-                </span>
-            `;
+            <span class="event-selected-item" data-id="${ev.id}">
+                ${ev.title}
+            </span>
+        `;
         });
-        html += "</div>";
 
+        html += "</div>";
         box.innerHTML = html;
 
         loadOrderList();
     }
 
-    window.switchEvent = function (eventId) {
-        selectedEventId = eventId;
-        loadOrderList();
-    };
+
+    /* 切換活動（事件委派版本） */
+    document.addEventListener("click", (e) => {
+        const item = e.target.closest(".event-selected-item");
+
+        if (item) {
+            const id = Number(item.dataset.id);
+            selectedEvents = selectedEvents.filter(ev => ev.id === id);
+            saveSelectedEvents();
+            renderSelectedEvents();
+        }
+    });
 
 });

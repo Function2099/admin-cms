@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+    if (window.orderPageLoaded) return;
+    window.orderPageLoaded = true;
+
     let selectedEvents = [];
     let allOrderEvents = [];
     let visibleCount = 10;
@@ -15,10 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedEvents = JSON.parse(saved);
         }
     }
-
-    /* 初始化 */
-    loadSelectedEvents();
-    renderSelectedEvents();
 
     /* 打開活動選單 */
     document.addEventListener("click", (e) => {
@@ -60,15 +59,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let html = "";
         slice.forEach(ev => {
+
+            const checked = selectedEvents.some(se => se.id === ev.id) ? "checked" : "";
+
             html += `
-                <label class="event-item">
-                    <input type="checkbox"
-                            class="event-checkbox"
-                            data-id="${ev.id}"
-                            data-title="${ev.title}">
-                    <span>${ev.title}</span>
-                </label>
-            `;
+            <label class="event-item">
+                <input type="checkbox"
+                        class="event-checkbox"
+                        data-id="${ev.id}"
+                        data-title="${ev.title}"
+                        ${checked}>
+                <span>${ev.title}</span>
+            </label>
+        `;
         });
 
         listEl.innerHTML = html;
@@ -78,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
             : "none";
     }
 
-    /* 套用活動選取 */
+    /* 套用活動按鈕 */
     document.addEventListener("click", (e) => {
         if (e.target.closest("#eventModalApply")) {
 
@@ -98,6 +101,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    /* 清空全部選擇按鈕 */
+    document.addEventListener("click", (e) => {
+        if (e.target.closest("#clearEventSelectionBtn")) {
+
+            // 清掉陣列
+            selectedEvents = [];
+            saveSelectedEvents();
+
+            // 全部 checkbox 取消
+            document.querySelectorAll(".event-checkbox").forEach(c => {
+                c.checked = false;
+            });
+
+            // 重新更新 UI
+            renderOrderEventList();
+            renderSelectedEvents();
+
+            // 清除訂單表格
+            const tbody = document.getElementById("orderTableBody");
+            if (tbody) tbody.innerHTML = "";
+        }
+    });
+
+
     /* 顯示更多 */
     document.addEventListener("click", (e) => {
         if (e.target.closest("#eventShowMore")) {
@@ -105,6 +132,28 @@ document.addEventListener("DOMContentLoaded", () => {
             renderOrderEventList();
         }
     });
+
+    // 避免點顯示更多時，checkbox沒同步的問題
+    document.addEventListener("change", (e) => {
+        if (e.target.classList.contains("event-checkbox")) {
+
+            const id = Number(e.target.dataset.id);
+            const title = e.target.dataset.title;
+
+            if (e.target.checked) {
+                // 加入（避免重複）
+                if (!selectedEvents.some(ev => ev.id === id)) {
+                    selectedEvents.push({ id, title });
+                }
+            } else {
+                // 移除未勾選
+                selectedEvents = selectedEvents.filter(ev => ev.id !== id);
+            }
+
+            saveSelectedEvents();
+        }
+    });
+
 
     /* 查詢訂單 */
     document.addEventListener("click", (e) => {
@@ -118,9 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (selectedEvents.length === 0) return;
 
         let keyword = document.getElementById("orderSearchInput").value.trim();
-
         let params = new URLSearchParams();
-
         selectedEvents.forEach(ev => params.append("eventIds", ev.id));
 
         if (keyword) params.append("keyword", keyword);
@@ -146,25 +193,67 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
-
-
     function showOrderDetail(orderId) {
-        alert("TODO: 未來做詳細訂單內容 orderId=" + orderId);
+
+        fetch(`/api/orders/detail/${orderId}`)
+            .then(resp => resp.json())
+            .then(items => {
+
+                const modal = document.getElementById("orderDetailModal");
+                const tbody = document.getElementById("orderDetailTbody");
+                const totalEl = document.getElementById("orderDetailTotal");
+
+                let html = "";
+                let total = 0;
+
+                items.forEach(it => {
+                    const qty = it.quantity ?? 0;
+                    const unit = Number(it.unitPrice ?? 0);
+                    const sub = Number(it.subtotal ?? unit * qty);
+
+                    total += sub;
+
+                    html += `
+                    <tr>
+                        <td>${it.ticketName}</td>
+                        <td>${qty}</td>
+                        <td>${unit.toFixed(2)}</td>
+                        <td>${sub.toFixed(2)}</td>
+                    </tr>
+                `;
+                });
+
+                tbody.innerHTML = html || `
+                <tr>
+                    <td colspan="4">此訂單目前沒有任何票券資料</td>
+                </tr>
+            `;
+
+                totalEl.textContent = total.toFixed(2);
+
+                modal.style.display = "flex";
+            });
     }
+
+    // 讓 inline onclick 可以找到這個函式
+    window.showOrderDetail = showOrderDetail;
 
     /* 顯示已選活動 */
     function renderSelectedEvents() {
         const box = document.getElementById("selectedEventBox");
-
+        if (!box) return;
         if (selectedEvents.length === 0) {
             box.innerHTML = `
             <button id="openEventModalBtn" class="select-event-btn">選擇活動</button>
             <div class="placeholder">(尚未選擇活動)</div>
         `;
+
+            const tbody = document.getElementById("orderTableBody");
+            if (tbody) tbody.innerHTML = "";
             return;
         }
 
-        let html = "<div class='event-selected-list'>";
+        let html = `<div class="event-selected-list">`;
 
         selectedEvents.forEach(ev => {
             html += `
@@ -174,23 +263,41 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         });
 
-        html += "</div>";
+        html += `</div>`;
         box.innerHTML = html;
 
         loadOrderList();
     }
 
+    loadSelectedEvents();
+    renderSelectedEvents();
 
-    /* 切換活動（事件委派版本） */
+    const observer = new MutationObserver(() => {
+        const box = document.getElementById("selectedEventBox");
+        if (box) renderSelectedEvents();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+
+    /* 切換活動 */
     document.addEventListener("click", (e) => {
         const item = e.target.closest(".event-selected-item");
-
         if (item) {
-            const id = Number(item.dataset.id);
-            selectedEvents = selectedEvents.filter(ev => ev.id === id);
-            saveSelectedEvents();
-            renderSelectedEvents();
+            document.getElementById("eventModal").style.display = "flex";
+            loadOrderEventList(); // 重新載入活動清單
         }
+
+        // 點右下關閉按鈕
+        if (e.target.closest("#orderDetailClose")) {
+            document.getElementById("orderDetailModal").style.display = "none";
+        }
+
+        // 點遮罩空白處也關閉（可選）
+        if (e.target.id === "orderDetailModal") {
+            document.getElementById("orderDetailModal").style.display = "none";
+        }
+
     });
 
 });

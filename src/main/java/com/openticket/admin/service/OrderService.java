@@ -1,7 +1,7 @@
 package com.openticket.admin.service;
 
 import com.openticket.admin.dto.OrderListDTO;
-import com.openticket.admin.repository.OrderRepository;
+import com.openticket.admin.repository.CheckoutOrderRepository;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderService {
     @Autowired
-    private OrderRepository repo;
+    private CheckoutOrderRepository repo;
 
     public List<OrderListDTO> getOrders(List<Long> eventIds, String keyword) {
         if (keyword != null && keyword.isBlank()) {

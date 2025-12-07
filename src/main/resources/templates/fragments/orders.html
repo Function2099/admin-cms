@@ -4,9 +4,15 @@
 
     <!-- 選擇活動區塊 -->
     <div class="selected-event-box" id="selectedEventBox">
-      <button id="openEventModalBtn" class="select-event-btn">選擇活動</button>
-      <div class="placeholder">(顯示活動標題)</div>
+      <div class="selected-event-header">
+        <button id="openEventModalBtn" class="select-event-btn">選擇活動</button>
+      </div>
+
+      <div id="selectedEventList" class="selected-event-content">
+        <div class="placeholder">(尚未選擇活動)</div>
+      </div>
     </div>
+
 
     <!-- 訂單查詢框 -->
     <div class="order-search-area">
@@ -49,9 +55,42 @@
 
       <!-- 按鈕列 -->
       <div class="event-modal-footer">
-        <button id="eventModalApply" class="apply-modal-btn">套用選擇</button>
         <button id="eventModalClose" class="close-modal-btn">關閉</button>
+        <button id="eventModalApply" class="apply-modal-btn">套用選擇</button>
+        <button id="clearEventSelectionBtn" class="clear-modal-btn">清空選擇</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 訂單明細 Modal -->
+  <div id="orderDetailModal" class="event-modal">
+    <div class="event-modal-content order-detail-modal">
+      <h3>訂單明細</h3>
+
+      <table class="order-detail-table">
+        <thead>
+          <tr>
+            <th>票種名稱</th>
+            <th>數量</th>
+            <th>單價</th>
+            <th>小計</th>
+          </tr>
+        </thead>
+        <tbody id="orderDetailTbody">
+          <!-- 動態載入 -->
+        </tbody>
+
+        <tfoot>
+          <tr class="order-detail-total-row">
+            <td colspan="3" style="text-align:right;">總金額</td>
+            <td id="orderDetailTotal"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <button id="orderDetailClose" class="order-detail-close-btn">
+        關閉
+      </button>
     </div>
   </div>
 </div>

@@ -1,5 +1,6 @@
 const PageInitializers = {
     "/organizer/dashboard": () => {
+        if (typeof loadKpi === "function") loadKpi();
         if (typeof initActivityCards === "function") initActivityCards();
     },
     "/organizer/dashboard/announcement": () => {

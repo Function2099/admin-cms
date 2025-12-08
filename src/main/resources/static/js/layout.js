@@ -77,8 +77,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-
-
 function toggleDropdown(id) {
     const menu = document.getElementById(id);
     const parentLi = menu.closest("li");

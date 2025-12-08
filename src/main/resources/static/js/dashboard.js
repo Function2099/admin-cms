@@ -19,9 +19,6 @@ function initActivityCards() {
         const imgUrl = act.images?.[0]?.imageUrl || 'https://placehold.co/100x100?text=No+Image';
         const startTime = act.eventStart || "未設定";
         const endTime = act.eventEnd || "未設定";
-        const avgStay = act.avgStayTime
-          ? `${Math.floor(act.avgStayTime / 60)}分${act.avgStayTime % 60}秒`
-          : '—';
 
         const cardHtml = `
           <div class="activity-card">
@@ -71,3 +68,19 @@ function initActivityCards() {
       `);
     });
 }
+
+function loadKpi() {
+  $.getJSON("/api/dashboard/kpi", function (res) {
+    if (!res.success) return;
+
+    const k = res.data;
+
+    $("#viewsTotal").text(k.viewsTotal ?? 0);
+    $("#ticketsTotal").text(k.ticketsTotal ?? 0);
+    $("#revenueTotal").text(k.revenueTotal ?? 0);
+  });
+}
+
+$(document).ready(function () {
+  loadKpi();
+});

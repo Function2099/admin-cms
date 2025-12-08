@@ -80,9 +80,6 @@ public class EventApiController {
     @Autowired
     private DashboardService dashboardService;
 
-    @Autowired
-    private CheckoutOrderRepository checkoutOrderRepository;
-
     @GetMapping
     public Page<EventListItemDTO> getPagedEvents(
             @RequestParam(defaultValue = "1") int page,
@@ -129,25 +126,6 @@ public class EventApiController {
     public List<EventListItemDTO> getLatestEvents() {
         Long companyId = 2L; // 先寫死
         return dashboardService.getLatestEvents(companyId);
-    }
-
-    @GetMapping("/debug/{id}/sales")
-    public Object debugEventSales(@PathVariable Long id) {
-
-        List<Object[]> list = checkoutOrderRepository.sumTicketsAndRevenueByEvent(id);
-
-        if (list == null || list.isEmpty()) {
-            return Map.of("tickets", 0, "revenue", 0);
-        }
-
-        Object[] row = list.get(0);
-
-        long tickets = ((Number) row[0]).longValue();
-        long revenue = ((Number) row[1]).longValue();
-
-        return Map.of(
-                "tickets", tickets,
-                "revenue", revenue);
     }
 
     @PostMapping("/create")

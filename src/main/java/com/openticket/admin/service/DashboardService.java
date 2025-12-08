@@ -1,6 +1,8 @@
 package com.openticket.admin.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -78,9 +80,42 @@ public class DashboardService {
         return dto;
     }
 
-    // debug用的，晚點刪掉
-    public List<Object[]> debugTicketsAndRevenue(Long eventId) {
-        return checkoutOrderRepository.sumTicketsAndRevenueByEvent(eventId);
+    public Map<String, Object> getOrganizerKpi(Long companyId) {
+
+        // 1. 找該主辦方全部活動 ID
+        List<Long> eventIds = eventRepository
+                .findByCompanyUser_Id(companyId)
+                .stream()
+                .map(Event::getId)
+                .toList();
+
+        // 空活動 = 全部 0
+        if (eventIds.isEmpty()) {
+            return Map.of(
+                    "viewsTotal", 0,
+                    "ticketsTotal", 0,
+                    "revenueTotal", 0);
+        }
+
+        // 2. 流量總和
+        int viewsTotal = eventIds.stream()
+                .map(id -> eventStatsRepository.findById(id).orElse(null))
+                .filter(Objects::nonNull)
+                .mapToInt(EventStats::getViews)
+                .sum();
+
+        // 3. 售票＋營收
+        Object result = checkoutOrderRepository.sumTotalTicketsAndRevenue(eventIds);
+        Object[] row = result != null ? (Object[]) result : new Object[] { 0, 0 };
+
+        long ticketsTotal = row[0] != null ? ((Number) row[0]).longValue() : 0;
+        long revenueTotal = row[1] != null ? ((java.math.BigDecimal) row[1]).longValue() : 0;
+
+        // 4. 回傳 KPI Map
+        return Map.of(
+                "viewsTotal", viewsTotal,
+                "ticketsTotal", ticketsTotal,
+                "revenueTotal", revenueTotal);
     }
 
 }

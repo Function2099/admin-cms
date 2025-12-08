@@ -113,6 +113,7 @@ hr {
     gap: 20px;
 }
 
+
 /* KPI 區塊：Flexbox 橫向排列 */
 .kpi-container {
     display: flex;
@@ -156,8 +157,7 @@ hr {
     background-color: #fff;
 }
 
-.chart-box h4,
-.pie-box h4 {
+.chart-box h4 {
     text-align: center;
     margin-top: 0;
     margin-bottom: 10px;
@@ -166,37 +166,36 @@ hr {
 
 /* 圓餅圖/甜甜圈圖框 */
 .pie-box {
+    max-width: 800px;
     width: 100%;
+    margin: 0 auto;
     padding: 15px;
     border-radius: 5px;
     background-color: #fff;
-    /* 圓餅圖不需要外框，因為圖片中的圖表和圖例是分開的 */
-    /* border: 1px solid #ccc; */
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pie-box h4 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 10px;
+    width: 100%;
+    font-size: 1.2em;
 }
 
 /* 確保 canvas 響應式 */
 canvas {
     max-width: 100%;
     height: auto !important;
-    /* 圖表庫可能會設定高度，這裡確保它響應式 */
-}
-
-.pie-box {
-    width: 100%;
-    padding: 15px;
-    border-radius: 5px;
-    background-color: #fff;
-    /* 限制最大寬度和高度，使圖表不再過大 */
-    max-width: 800px;
-    max-height: 500px;
-    margin: 0 auto;
-    /* 讓圓餅圖在右側欄中央 */
 }
 
 #pieChart {
     max-height: 400px;
-    max-width: 400px;
     margin: 0 auto;
     display: block;
-    /* 讓 margin auto 生效 */
+    width: 100%;
+    aspect-ratio: 1 / 1;
 }

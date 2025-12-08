@@ -50,11 +50,14 @@ public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Lo
                         SELECT tt.name AS ticketName,
                                 SUM(co.quantity) AS totalQty
                         FROM CheckoutOrder co
+                        JOIN co.order o
+                        JOIN Payment p ON p.order = o
                         JOIN co.eventTicketType ett
                         JOIN ett.ticketTemplate tt
-                        JOIN co.order o
                         WHERE ett.event.id IN :eventIds
-                                AND o.createdAt BETWEEN :startTime AND :endTime
+                        AND p.status IN ('SUCCESS', 'PAID')
+                        AND p.paidAt >= :startTime
+                        AND p.paidAt < :endTime
                         GROUP BY tt.name
                         """)
         List<Object[]> findTicketPieData(
@@ -91,5 +94,19 @@ public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Lo
         List<OrderListDTO> findOrdersByEvents(
                         @Param("eventIds") List<Long> eventIds,
                         @Param("keyword") String keyword);
+
+        // 查總售票+總營收
+        @Query("""
+                                SELECT
+                                SUM(co.quantity),
+                                SUM(co.quantity * co.unitPrice)
+                                FROM CheckoutOrder co
+                                JOIN co.order o
+                                JOIN Payment p ON p.order = o
+                                JOIN co.eventTicketType ett
+                                WHERE ett.event.id IN :eventIds
+                                AND p.status IN ('SUCCESS', 'PAID')
+                        """)
+        Object sumTotalTicketsAndRevenue(@Param("eventIds") List<Long> eventIds);
 
 }

@@ -21,7 +21,7 @@ async function loadAnalytics() {
     // 取得模式:merge / compare
     const mode = document.querySelector('input[name="mode"]:checked')?.value || "merge";
 
-    // 無活動 → 顯示空資料（全部為 0)
+    // 無活動顯示空資料（全部為 0)
     if (eventIds.length === 0) {
         // KPI 清空
         document.getElementById("kpiViews").innerText = 0;
@@ -57,13 +57,8 @@ async function loadAnalytics() {
 
         // 圓餅圖
         if (chartPie) chartPie.destroy();
-        chartPie = new Chart(document.getElementById("pieChart"), {
-            type: "pie",
-            data: {
-                labels: ["無資料"],
-                datasets: [{ data: [1], backgroundColor: ["#cccccc"] }]
-            }
-        });
+        renderPieChart(["無資料"], [1], ["#cccccc"]);
+        loadOverview();
         return;
     }
 
@@ -122,13 +117,7 @@ async function loadAnalytics() {
 
         // ===== 圓餅圖：目前先合併，不做多餅 =====
         if (chartPie) chartPie.destroy();
-        chartPie = new Chart(document.getElementById("pieChart"), {
-            type: "pie",
-            data: {
-                labels: ["比較模式無個別圓餅"],
-                datasets: [{ data: [1], backgroundColor: ["#cccccc"] }]
-            }
-        });
+        renderPieChart(["比較模式無個別圓餅"], [1], ["#cccccc"]);
 
         // 不支援KPI顯示(比較模式)
         document.getElementById("kpiViews").innerText = "-";
@@ -180,17 +169,25 @@ async function loadAnalytics() {
     });
 
     // 圓餅
+    let labelsPie = data.ticketPie.labels;
+    let dataPie = data.ticketPie.data;
+
+    if (!labelsPie || !dataPie || dataPie.length === 0 || dataPie.every(v => v === 0)) {
+
+        renderPieChart(["無銷售資料"], [1], ["#cccccc"]);
+        return;
+    }
+
+    const dynamicColors = [
+        "#ff6600", "#0099ff", "#66cc33", "#cc33ff",
+        "#ff9933", "#6699ff", "#33cc99", "#ff3333"
+    ];
+
+    // 根據票種數量裁切顏色
+    let pieColors = dynamicColors.slice(0, dataPie.length);
+
     if (chartPie) chartPie.destroy();
-    chartPie = new Chart(document.getElementById("pieChart"), {
-        type: "pie",
-        data: {
-            labels: data.ticketPie.labels,
-            datasets: [{
-                data: data.ticketPie.data,
-                backgroundColor: ["#ff6600", "#0099ff", "#66cc33", "#999999"]
-            }]
-        }
-    });
+    renderPieChart(labelsPie, dataPie, pieColors);
 }
 
 // 載入活動列表
@@ -292,6 +289,7 @@ function initEventSelectionListener() {
                 .map(e => e.value);
             localStorage.setItem("analytics_selectedEvents", JSON.stringify(ids));
             loadAnalytics();
+            loadOverview();
         });
     });
 
@@ -301,6 +299,7 @@ function initEventSelectionListener() {
             // 保存模式
             localStorage.setItem("analytics_mode", r.value);
             loadAnalytics();
+            loadOverview();
         });
     });
 }
@@ -347,7 +346,6 @@ async function initTrafficAnalytics() {
         loadAnalytics();
     });
 
-
     // 重製日期
     document.getElementById("resetDateBtn").addEventListener("click", () => {
         setDefaultDateRange();
@@ -355,6 +353,7 @@ async function initTrafficAnalytics() {
     });
 
     loadAnalytics();
+    loadOverview();
 }
 
 function setDefaultDateRange() {
@@ -365,3 +364,58 @@ function setDefaultDateRange() {
     document.getElementById("dateStart").value = start.toISOString().split("T")[0];
     document.getElementById("dateEnd").value = end.toISOString().split("T")[0];
 }
+
+// 圓餅圖
+function renderPieChart(labels, data, colors) {
+    if (chartPie) chartPie.destroy();
+
+    chartPie = new Chart(document.getElementById("pieChart"), {
+        type: "pie",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "top",
+                    labels: { boxWidth: 20 }
+                }
+            }
+        }
+    });
+}
+
+// 載入overview的資料
+async function loadOverview() {
+
+    // 取得勾選的活動
+    const eventIds = [...document.querySelectorAll('.event-check:checked')].map(e => e.value);
+
+    if (eventIds.length === 0) {
+        document.getElementById("totalViews").innerText = 0;
+        document.getElementById("totalSales").innerText = 0;
+        document.getElementById("totalRevenue").innerText = 0;
+        document.getElementById("totalEvents").innerText = 0;
+        return;
+    }
+
+    const params = eventIds.map(id => `eventIds=${id}`).join("&");
+
+    const res = await fetch(`/api/analytics/overview?${params}`);
+    const data = await res.json();
+
+    console.log("overview 回傳:", data);
+
+    document.getElementById("totalViews").innerText = data.totalViews;
+    document.getElementById("totalSales").innerText = data.totalSales;
+    document.getElementById("totalRevenue").innerText = data.totalRevenue;
+    document.getElementById("totalEvents").innerText = data.totalEvents;
+}
+
+

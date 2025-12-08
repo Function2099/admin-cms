@@ -241,4 +241,42 @@ public class AnalyticsService {
         return dto;
 
     }
+
+    public AnalyticsDTO.Overview getTotalOverview(List<Long> eventIds) {
+
+        AnalyticsDTO.Overview overview = new AnalyticsDTO.Overview();
+
+        // ========== 總瀏覽量 ==========
+        long totalViews = eventStatsRepository.findByIdIn(eventIds)
+                .stream()
+                .mapToLong(s -> s.getViews() == null ? 0 : s.getViews())
+                .sum();
+
+        overview.setTotalViews(totalViews);
+
+        // ========== 總售出票數 + 總營收 ==========
+        Object raw = checkoutOrderRepository.sumTotalTicketsAndRevenue(eventIds);
+
+        Object[] row = raw != null ? (Object[]) raw : null;
+
+        long totalSales = 0;
+        long totalRevenue = 0;
+
+        if (row != null) {
+            if (row[0] != null)
+                totalSales = ((Number) row[0]).longValue();
+
+            if (row[1] != null)
+                totalRevenue = ((Number) row[1]).longValue();
+        }
+
+        overview.setTotalSales(totalSales);
+        overview.setTotalRevenue(totalRevenue);
+
+        // ========== 總活動數 ==========
+        overview.setTotalEvents(eventIds.size());
+
+        return overview;
+    }
+
 }

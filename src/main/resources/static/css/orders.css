@@ -193,6 +193,7 @@
     padding: 10px;
     margin-bottom: 12px;
     border: 1px solid #ccc;
+    box-sizing: border-box;
 }
 
 /* 活動列表 */

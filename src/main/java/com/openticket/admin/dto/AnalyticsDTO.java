@@ -1,8 +1,9 @@
 package com.openticket.admin.dto;
 
-import lombok.Data;
 import java.util.List;
 import java.util.Map;
+
+import lombok.Data;
 
 @Data
 public class AnalyticsDTO {
@@ -28,7 +29,7 @@ public class AnalyticsDTO {
         private long totalViews;
         private long totalSales;
         private long totalRevenue;
-        private int totalEvents; // 你可以傳回所選活動數量
+        private int totalEvents;
     }
 
     // ===================== Line Charts =====================

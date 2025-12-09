@@ -106,6 +106,7 @@ public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Lo
                         JOIN co.eventTicketType ett
                         WHERE ett.event.id IN :eventIds
                         AND p.status IN ('SUCCESS', 'PAID')
+                        AND p.paidAt IS NOT NULL
                         """)
         Object sumTotalTicketsAndRevenue(@Param("eventIds") List<Long> eventIds);
 

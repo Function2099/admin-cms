@@ -75,9 +75,9 @@ function loadKpi() {
 
     const k = res.data;
 
-    $("#viewsTotal").text(k.viewsTotal ?? 0);
-    $("#ticketsTotal").text(k.ticketsTotal ?? 0);
-    $("#revenueTotal").text(k.revenueTotal ?? 0);
+    $("#viewsTotal").text(k.viewsTotal ?? "載入中...");
+    $("#ticketsTotal").text(k.ticketsTotal ?? "載入中...");
+    $("#revenueTotal").text(k.revenueTotal ?? "載入中...");
   });
 }
 

@@ -1,5 +1,6 @@
 package com.openticket.admin.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -81,9 +82,10 @@ public class DashboardService {
 
         public Map<String, Object> getOrganizerKpi(Long companyId) {
 
-                // 1. 查全部活動
-                List<Event> events = eventRepository.findByCompanyUser_Id(companyId);
-                List<Long> eventIds = events.stream().map(Event::getId).toList();
+                List<Long> eventIds = eventRepository.findByCompanyUser_Id(companyId)
+                                .stream()
+                                .map(Event::getId)
+                                .toList();
 
                 if (eventIds.isEmpty()) {
                         return Map.of(
@@ -92,34 +94,16 @@ public class DashboardService {
                                         "revenueTotal", 0);
                 }
 
-                // ---------【方案 C：一次迴圈全部算完】---------
-                long viewsTotal = 0;
-                long ticketsTotal = 0;
-                long revenueTotal = 0;
+                // A. 流量一次加總
+                long viewsTotal = eventStatsRepository.sumViewsByEventIds(eventIds);
 
-                for (Long eventId : eventIds) {
+                // B. 售票＋營收一次加總
+                Object result = checkoutOrderRepository.sumTotalTicketsAndRevenue(eventIds);
+                Object[] row = result != null ? (Object[]) result : new Object[] { 0, 0 };
 
-                        // A. 流量（event_stats）
-                        EventStats stats = eventStatsRepository.findById(eventId).orElse(null);
-                        if (stats != null) {
-                                viewsTotal += stats.getViews();
-                        }
+                long ticketsTotal = row[0] != null ? ((Number) row[0]).longValue() : 0;
+                long revenueTotal = row[1] != null ? ((BigDecimal) row[1]).longValue() : 0;
 
-                        // B. 售票 + 營收（checkout_orders）
-                        List<Object[]> rows = checkoutOrderRepository.sumTicketsAndRevenueByEvent(eventId);
-
-                        if (rows != null && !rows.isEmpty()) {
-                                Object[] row = rows.get(0);
-
-                                long tickets = row[0] != null ? ((Number) row[0]).longValue() : 0;
-                                long revenue = row[1] != null ? ((java.math.BigDecimal) row[1]).longValue() : 0;
-
-                                ticketsTotal += tickets;
-                                revenueTotal += revenue;
-                        }
-                }
-
-                // 3. 回傳
                 return Map.of(
                                 "viewsTotal", viewsTotal,
                                 "ticketsTotal", ticketsTotal,

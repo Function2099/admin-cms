@@ -66,6 +66,13 @@
   color: #333;
 }
 
+.loading-text {
+  font-size: 12px !important;
+  font-weight: normal !important;
+  color: #888 !important;
+}
+
+
 .refresh-btn {
   background: #e8f1ff;
   border: none;

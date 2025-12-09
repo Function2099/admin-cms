@@ -10,6 +10,7 @@ import com.openticket.admin.service.AnnouncementService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+// =============廠商端=============
 @Controller
 @RequestMapping("/organizer")
 public class CompanyController {
@@ -17,7 +18,6 @@ public class CompanyController {
     @Autowired
     private AnnouncementService announcementService;
 
-    // =============廠商端=============
     // =============後台主頁=============
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
@@ -73,10 +73,6 @@ public class CompanyController {
     // =============公告與活動=============
     @GetMapping("/dashboard-frag")
     public String eventPage(Model model) {
-        long count = announcementService.count();
-        model.addAttribute("announcementCount", count);
-        model.addAttribute("eventCount", 0);
-        model.addAttribute("ticketCount", 0);
         return "fragments/dashboard :: content";
     }
 

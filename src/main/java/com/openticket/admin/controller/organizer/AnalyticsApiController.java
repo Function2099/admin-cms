@@ -1,4 +1,4 @@
-package com.openticket.admin.controller;
+package com.openticket.admin.controller.organizer;
 
 import java.time.LocalDate;
 import java.util.List;

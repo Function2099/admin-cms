@@ -1,7 +1,7 @@
 const PageInitializers = {
     "/organizer/dashboard": () => {
-        if (typeof loadKpi === "function") loadKpi();
         if (typeof initActivityCards === "function") initActivityCards();
+        loadKpi();
     },
     "/organizer/dashboard/announcement": () => {
         if (typeof initAnnouncement === "function") initAnnouncement();
@@ -15,12 +15,24 @@ const PageInitializers = {
     "/organizer/dashboard/analytics/traffic": () => {
         if (typeof initTrafficAnalytics === "function") initTrafficAnalytics();
     },
-    "/organizer/dashboard/analytics/consumer": () => {
-        if (typeof initConsumerAnalytics === "function") initConsumerAnalytics();
-    },
     "/organizer/dashboard/orders": () => {
         if (typeof initOrders === "function") initOrders();
-    }
+    },
+    // Admin Dashboard 初始化
+    "/admin/dashboard": () => {
+        if (typeof initAdminDashboard === "function") initAdminDashboard();
+    },
+
+    // Admin 使用者管理
+    "/admin/dashboard/admin/users": () => {
+        if (typeof initAdminUsers === "function") initAdminUsers();
+    },
+
+    // Admin 訂單管理
+    "/admin/dashboard/admin/orders": () => {
+        if (typeof initAdminOrders === "function") initAdminOrders();
+    },
+
 };
 
 function pageInitializer() {

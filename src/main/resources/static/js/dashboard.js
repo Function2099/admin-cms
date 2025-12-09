@@ -4,6 +4,12 @@ function initActivityCards() {
 
   if ($container.length === 0 || $empty.length === 0) return;
 
+  $empty.on("click", ".add-btn", function () {
+    localStorage.setItem("activeLink", "sidebar-event");
+    localStorage.setItem("dropdown:content-dropdown", "open");
+    window.location.href = "/organizer/dashboard/event";
+  });
+
   $.getJSON("/api/events/latest")
     .done(activities => {
 
@@ -75,12 +81,8 @@ function loadKpi() {
 
     const k = res.data;
 
-    $("#viewsTotal").text(k.viewsTotal ?? "載入中...");
-    $("#ticketsTotal").text(k.ticketsTotal ?? "載入中...");
-    $("#revenueTotal").text(k.revenueTotal ?? "載入中...");
+    $("#viewsTotal").removeClass("loading-text").text(k.viewsTotal);
+    $("#ticketsTotal").removeClass("loading-text").text(k.ticketsTotal);
+    $("#revenueTotal").removeClass("loading-text").text(k.revenueTotal);
   });
 }
-
-$(document).ready(function () {
-  loadKpi();
-});

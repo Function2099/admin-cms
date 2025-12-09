@@ -1,5 +1,6 @@
 <div th:fragment="sidebar">
   <ul>
+    <!-- 主辦方的首頁 -->
     <li>
       <a
         id="sidebar-home"
@@ -8,6 +9,18 @@
         data-path=""
         >首頁</a
       >
+    </li>
+
+    <!-- 管理者的首頁 -->
+    <li>
+      <a
+        id="sidebar-admin-dashboard"
+        href="/admin/dashboard-frag"
+        data-path="dashboard"
+        onclick="loadContent(event, this)"
+      >
+        (管理者)首頁
+      </a>
     </li>
 
     <li>
@@ -40,39 +53,29 @@
             ．活動管理
           </a>
         </li>
+
+        <li>
+          <a
+            id="sidebar-admin-users"
+            href="/admin/users-frag"
+            data-path="dashboard/users"
+            onclick="loadContent(event, this)"
+          >
+            ．(管理者)使用者權限管理
+          </a>
+        </li>
       </ul>
     </li>
 
     <li>
       <a
-        href="javascript:void(0)"
-        class="dropdown-toggle"
-        onclick="toggleDropdown('analytics-dropdown')"
+        id="sidebar-analytics"
+        href="/organizer/analytics/traffic-frag"
+        data-path="analytics/traffic"
+        onclick="loadContent(event, this)"
       >
-        數據統計
+        流量與銷售分析
       </a>
-      <ul id="analytics-dropdown" class="dropdown-menu">
-        <li>
-          <a
-            id="sidebar-analytics-traffic"
-            href="/organizer/analytics/traffic-frag"
-            data-path="analytics/traffic"
-            onclick="loadContent(event, this)"
-          >
-            ．流量與銷售分析
-          </a>
-        </li>
-        <li>
-          <a
-            id="sidebar-analytics-consumer"
-            href="/organizer/analytics/consumer-frag"
-            data-path="analytics/consumer"
-            onclick="loadContent(event, this)"
-          >
-            ．用戶分析
-          </a>
-        </li>
-      </ul>
     </li>
 
     <li>
@@ -85,7 +88,16 @@
         訂單查詢
       </a>
     </li>
-    <li><a href="/organizer/contact">聯絡我們</a></li>
-    <li><a href="/organizer/settings">管理者區塊</a></li>
+
+    <li>
+      <a
+        id="sidebar-admin-orders"
+        href="/admin/orders-frag"
+        data-path="dashboard/orders"
+        onclick="loadContent(event, this)"
+      >
+        (管理者)訂單查詢
+      </a>
+    </li>
   </ul>
 </div>

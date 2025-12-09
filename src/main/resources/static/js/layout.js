@@ -1,6 +1,7 @@
 function loadContent(event, link) {
     event.preventDefault();
 
+    // active 樣式處理
     document.querySelectorAll(".sidebar li")
         .forEach((li) => li.classList.remove("active"));
 
@@ -13,25 +14,34 @@ function loadContent(event, link) {
 
     if (li) li.classList.add("active");
 
+    // 下拉選單邏輯（不載入頁面）
     if (isDropdownToggle) {
         const dropdown = li.querySelector(".dropdown-menu");
         if (dropdown) dropdown.classList.add("show");
-        return; // 不載入內容，只展開
+        return;
     }
 
-    // ------- AJAX 載入 fragment -------
-    const url = link.getAttribute("href");
-    const logicalPath = link.dataset.path || "";
+    // AJAX 載入 fragment
+    const url = link.getAttribute("href");         // /organizer/xxx-frag OR /admin/xxx-frag
+    const logicalPath = link.dataset.path || "";   // data-path="orders" / "admin/users"
 
+    let newUrl;
 
-    history.pushState(
-        null,
-        "",
-        "/organizer/dashboard" + (logicalPath ? "/" + logicalPath : ""));
+    // 判斷是否為 Admin 分頁：href 以 /admin 開頭
+    if (url.startsWith("/admin")) {
+        newUrl = "/admin" + (logicalPath ? "/" + logicalPath : "");
 
+    } else {
+        // Organizer 分頁
+        newUrl = "/organizer/dashboard" + (logicalPath ? "/" + logicalPath : "");
+    }
+
+    history.pushState(null, "", newUrl);
+
+    // Fetch fragment
     fetch(url)
         .then((response) => {
-            if (!response.ok) throw new Error("載入失敗");
+            if (!response.ok) throw new Error("載入失敗: " + url);
             return response.text();
         })
         .then((html) => {
@@ -42,7 +52,6 @@ function loadContent(event, link) {
             console.error("載入錯誤:", error);
         });
 }
-
 
 window.addEventListener("DOMContentLoaded", () => {
     pageInitializer()
@@ -75,6 +84,52 @@ window.addEventListener("DOMContentLoaded", () => {
             if (dropdown) dropdown.classList.add("show");
         }
     }
+    // 依照 URL 自動設定 active
+    (function autoActiveByUrl() {
+        const path = location.pathname;
+
+        let matchLink = null;
+
+        document.querySelectorAll(".sidebar a").forEach(a => {
+            if (a.classList.contains("dropdown-toggle")) return;
+
+            const dataPath = a.dataset.path || "";
+            // Admin
+            if (path.startsWith("/admin")) {
+                if (("/admin/" + dataPath) === path ||
+                    (path === "/admin/dashboard" && dataPath === "dashboard")) {
+                    matchLink = a;
+                }
+            }
+
+            // Organizer
+            if (path.startsWith("/organizer/dashboard")) {
+                if (path === "/organizer/dashboard" && dataPath === "") {
+                    matchLink = a;
+                }
+                if (("/organizer/dashboard/" + dataPath) === path) {
+                    matchLink = a;
+                }
+            }
+        });
+
+        if (matchLink) {
+            const li = matchLink.closest("li");
+            li.classList.add("active");
+            localStorage.setItem("activeLink", matchLink.id);
+
+            // 如果存在，展開上層的 dropdown-menu
+            const dropdown = matchLink.closest(".dropdown-menu");
+            if (dropdown) {
+                dropdown.classList.add("show");
+                dropdown.style.maxHeight = "none"; // 防動畫卡住
+                const parentLi = dropdown.closest("li");
+                if (parentLi) parentLi.classList.add("expanded");
+            }
+        }
+    })();
+
+
 });
 
 function toggleDropdown(id) {

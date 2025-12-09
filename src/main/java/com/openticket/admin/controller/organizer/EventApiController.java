@@ -1,4 +1,4 @@
-package com.openticket.admin.controller;
+package com.openticket.admin.controller.organizer;
 
 import java.io.IOException;
 import java.nio.file.Files;

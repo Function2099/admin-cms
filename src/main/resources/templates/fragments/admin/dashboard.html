@@ -1,3 +1,34 @@
-<div th:fragment="content">
-    <h2>管理者首頁</h2>
+<div th:fragment="content" class="admin-dashboard">
+  <!-- 標題 -->
+  <h2>管理者首頁儀表板</h2>
+
+  <!-- 日期篩選 -->
+  <div class="filter-bar">
+    <label>起</label>
+    <input type="date" id="adminStartDate" />
+    <label>迄</label>
+    <input type="date" id="adminEndDate" />
+    <button id="adminFilterBtn">搜尋</button>
+  </div>
+
+  <!-- KPI 卡片 -->
+  <div class="kpi-container">
+    <div class="kpi-card">
+      <h3>平台首頁總流量</h3>
+      <div id="kpiHomepageViews">0</div>
+    </div>
+  </div>
+
+  <!-- 折線圖區 -->
+  <div class="charts-container">
+    <div class="chart-box">
+      <h3>平台所有活動總流量（每日）</h3>
+      <canvas id="adminTrafficChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h3>平台所有活動總銷售額（每日）</h3>
+      <canvas id="adminSalesChart"></canvas>
+    </div>
+  </div>
 </div>

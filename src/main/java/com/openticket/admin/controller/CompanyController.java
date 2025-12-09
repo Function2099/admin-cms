@@ -15,17 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("/organizer")
 public class CompanyController {
 
-    @Autowired
-    private AnnouncementService announcementService;
-
     // =============後台主頁=============
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        long count = announcementService.count();
         model.addAttribute("content", "fragments/dashboard :: content");
-        model.addAttribute("announcementCount", count);
-        model.addAttribute("eventCount", 0);
-        model.addAttribute("ticketCount", 0);
         return "index";
     }
 

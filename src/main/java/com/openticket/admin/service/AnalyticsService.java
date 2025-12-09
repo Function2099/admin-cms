@@ -15,10 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.openticket.admin.dto.AnalyticsDTO;
+import com.openticket.admin.entity.Event;
 import com.openticket.admin.entity.EventDailyStats;
 import com.openticket.admin.entity.EventStats;
 import com.openticket.admin.repository.CheckoutOrderRepository;
 import com.openticket.admin.repository.EventDailyStatsRepository;
+import com.openticket.admin.repository.EventRepository;
 import com.openticket.admin.repository.EventStatsRepository;
 import com.openticket.admin.repository.PaymentRepository;
 
@@ -277,6 +279,17 @@ public class AnalyticsService {
         overview.setTotalEvents(eventIds.size());
 
         return overview;
+    }
+
+    // 查詢所有活動的(主要給管理者端使用)
+    @Autowired
+    private EventRepository eventRepository;
+
+    public List<Long> getAllEventIds() {
+        return eventRepository.findAll()
+                .stream()
+                .map(Event::getId)
+                .toList();
     }
 
 }

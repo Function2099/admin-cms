@@ -22,8 +22,8 @@ function loadContent(event, link) {
     }
 
     // AJAX 載入 fragment
-    const url = link.getAttribute("href");         // /organizer/xxx-frag OR /admin/xxx-frag
-    const logicalPath = link.dataset.path || "";   // data-path="orders" / "admin/users"
+    const url = link.getAttribute("href");
+    const logicalPath = link.dataset.path || "";
 
     let newUrl;
 
@@ -128,8 +128,6 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         }
     })();
-
-
 });
 
 function toggleDropdown(id) {

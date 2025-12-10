@@ -39,7 +39,11 @@ function pageInitializer() {
     console.log("Current path:", location.pathname);
     const path = location.pathname;
     const init = PageInitializers[path];
+
     if (typeof init === "function") {
-        init();
+        // 延遲到 DOM layout 真正完成
+        setTimeout(() => {
+            init();
+        }, 0);
     }
 }

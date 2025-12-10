@@ -1,10 +1,6 @@
 package com.openticket.admin.controller.admin;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openticket.admin.dto.AnalyticsDTO;
+import com.openticket.admin.dto.AdminAnalyticsDTO;
 import com.openticket.admin.entity.LoginLog;
 import com.openticket.admin.repository.HomepageSessionLogRepository;
 import com.openticket.admin.service.AnalyticsService;
@@ -30,9 +26,6 @@ public class AdminDashboardApiController {
     @Autowired
     private AnalyticsService analyticsService;
 
-    @Autowired
-    private HomepageSessionLogRepository homepageRepo;
-
     @GetMapping("/login-logs")
     public Page<LoginLog> getLoginLogs(
             @RequestParam(defaultValue = "") String keyword,
@@ -43,14 +36,10 @@ public class AdminDashboardApiController {
     }
 
     @GetMapping("/dashboard-analytics")
-    public Map<String, Object> getDashboardAnalytics(
+    public AdminAnalyticsDTO getAdminAnalytics(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
 
-        // 全平台活動 IDs
-        List<Long> eventIds = analyticsService.getAllEventIds();
-
-        // 日期解析
         LocalDate s = (startDate == null || startDate.isEmpty())
                 ? null
                 : LocalDate.parse(startDate);
@@ -59,17 +48,7 @@ public class AdminDashboardApiController {
                 ? null
                 : LocalDate.parse(endDate);
 
-        // 查詢合併模式
-        AnalyticsDTO analytics = analyticsService.getAnalytics(eventIds, "merge", s, e);
-
-        // KPI：首頁總瀏覽量
-        long homepageViews = homepageRepo.count();
-
-        // 回傳物件
-        Map<String, Object> result = new HashMap<>();
-        result.put("homepageViews", homepageViews);
-        result.put("analytics", analytics);
-
-        return result;
+        return analyticsService.getAdminAnalytics(s, e);
     }
+
 }

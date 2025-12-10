@@ -43,6 +43,14 @@ public class AnalyticsDTO {
     public static class ChartData {
         private List<String> labels; // 日期
         private List<Integer> data; // 多活動 views/sales 加總後的值
+
+        public ChartData() {
+        }
+
+        public ChartData(List<String> labels, List<Integer> data) {
+            this.labels = labels;
+            this.data = data;
+        }
     }
 
     // ===================== Pie Chart =====================

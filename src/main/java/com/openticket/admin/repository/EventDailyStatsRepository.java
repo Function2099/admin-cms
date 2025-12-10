@@ -12,19 +12,25 @@ import java.util.List;
 @Repository
 public interface EventDailyStatsRepository extends JpaRepository<EventDailyStats, Long> {
 
-    // 查某活動的某段日期
-    List<EventDailyStats> findByEventIdAndStatDateBetween(
-            Long eventId,
-            LocalDate startDate,
-            LocalDate endDate);
+        // 查某活動的某段日期
+        List<EventDailyStats> findByEventIdAndStatDateBetween(
+                        Long eventId,
+                        LocalDate startDate,
+                        LocalDate endDate);
 
-    // 今天瀏覽量總和（KPI 用）
-    @Query("""
-                select coalesce(sum(e.dayViews), 0)
-                from EventDailyStats e
-                where e.eventId = :eventId
-                and e.statDate = :date
-            """)
-    int sumTodayViews(@Param("eventId") Long eventId,
-            @Param("date") LocalDate date);
+        // 管理者用:查活動每天的資料
+        List<EventDailyStats> findByEventIdInAndStatDateBetween(
+                        List<Long> eventIds,
+                        LocalDate startDate,
+                        LocalDate endDate);
+
+        // 今天瀏覽量總和（KPI 用）
+        @Query("""
+                        select coalesce(sum(e.dayViews), 0)
+                        from EventDailyStats e
+                        where e.eventId = :eventId
+                        and e.statDate = :date
+                        """)
+        int sumTodayViews(@Param("eventId") Long eventId,
+                        @Param("date") LocalDate date);
 }

@@ -1,0 +1,101 @@
+.admin-dashboard {
+    padding: 20px;
+}
+
+/* 歡迎列 */
+.admin-header {
+    width: 100%;
+    text-align: center;
+    font-size: 24px;
+    padding: 20px 0;
+    border: 2px solid #000;
+    margin-bottom: 20px;
+}
+
+/* 整體三欄布局 */
+.admin-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 380px;
+    grid-gap: 20px;
+}
+
+/* 左側區域 */
+.left-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.filter-box,
+.kpi-box {
+    border: 2px solid #000;
+    padding: 15px;
+}
+
+.filter-box label {
+    margin-right: 5px;
+}
+
+/* KPI 數值 */
+.kpi-value {
+    font-size: 26px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* 中間折線圖區域 */
+.middle-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.chart-box {
+    border: 2px solid #000;
+    padding: 10px;
+    height: 330px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-box h3 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.chart-box canvas {
+    flex-grow: 1;
+    width: 100% !important;
+}
+
+/* 右側登入紀錄 */
+.right-side {
+    border: 2px solid #000;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.log-search {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.log-table th,
+.log-table td {
+    border: 1px solid #aaa;
+    padding: 6px;
+    text-align: center;
+}
+
+.log-pagination {
+    text-align: center;
+    margin-top: auto;
+}

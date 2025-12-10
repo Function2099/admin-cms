@@ -14,6 +14,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.openticket.admin.dto.AdminAnalyticsDTO;
 import com.openticket.admin.dto.AnalyticsDTO;
 import com.openticket.admin.entity.Event;
 import com.openticket.admin.entity.EventDailyStats;
@@ -23,6 +24,7 @@ import com.openticket.admin.repository.EventDailyStatsRepository;
 import com.openticket.admin.repository.EventRepository;
 import com.openticket.admin.repository.EventStatsRepository;
 import com.openticket.admin.repository.PaymentRepository;
+import com.openticket.admin.repository.HomepageSessionLogRepository;
 
 @Service
 public class AnalyticsService {
@@ -248,7 +250,7 @@ public class AnalyticsService {
 
         AnalyticsDTO.Overview overview = new AnalyticsDTO.Overview();
 
-        // ========== 總瀏覽量 ==========
+        // 總瀏覽量
         long totalViews = eventStatsRepository.findByIdIn(eventIds)
                 .stream()
                 .mapToLong(s -> s.getViews() == null ? 0 : s.getViews())
@@ -256,7 +258,7 @@ public class AnalyticsService {
 
         overview.setTotalViews(totalViews);
 
-        // ========== 總售出票數 + 總營收 ==========
+        // 總售出票數 + 總營收
         Object raw = checkoutOrderRepository.sumTotalTicketsAndRevenue(eventIds);
 
         Object[] row = raw != null ? (Object[]) raw : null;
@@ -275,7 +277,7 @@ public class AnalyticsService {
         overview.setTotalSales(totalSales);
         overview.setTotalRevenue(totalRevenue);
 
-        // ========== 總活動數 ==========
+        // 總活動數
         overview.setTotalEvents(eventIds.size());
 
         return overview;
@@ -285,11 +287,80 @@ public class AnalyticsService {
     @Autowired
     private EventRepository eventRepository;
 
+    @Autowired
+    private HomepageSessionLogRepository homepageSessionLogRepository;
+
     public List<Long> getAllEventIds() {
         return eventRepository.findAll()
                 .stream()
                 .map(Event::getId)
                 .toList();
+    }
+
+    public AdminAnalyticsDTO getAdminAnalytics(LocalDate startDate, LocalDate endDate) {
+
+        // 1) 取得全部活動 ID
+        List<Long> eventIds = getAllEventIds();
+
+        // 時間區間處理
+        LocalDate today = (endDate != null ? endDate : LocalDate.now());
+        LocalDate start = (startDate != null ? startDate : today.minusDays(6));
+        int days = (int) ChronoUnit.DAYS.between(start, today) + 1;
+
+        LocalDateTime startTime = start.atStartOfDay();
+        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
+
+        // 建立 DTO
+        AdminAnalyticsDTO dto = new AdminAnalyticsDTO();
+
+        // 查首頁總流量
+        dto.homepageViews = homepageSessionLogRepository.count();
+
+        // 查今日交易成功率
+        long success = paymentRepository.findTodaySuccessCount();
+        long total = paymentRepository.findTodayTotalCount();
+        dto.successRate = (total == 0 ? 1.0 : (double) success / total);
+
+        // 每日流量折線圖
+        int[] trafficArr = new int[days];
+        List<EventDailyStats> statsList = eventDailyStatsRepository.findByEventIdInAndStatDateBetween(eventIds, start,
+                today);
+
+        for (EventDailyStats es : statsList) {
+            long diff = ChronoUnit.DAYS.between(start, es.getStatDate());
+            if (diff >= 0 && diff < days) {
+                trafficArr[(int) diff] += es.getDayViews();
+            }
+        }
+
+        List<String> labels = new ArrayList<>();
+        for (int i = 0; i < days; i++) {
+            LocalDate d = start.plusDays(i);
+            labels.add(d.getMonthValue() + "/" + d.getDayOfMonth());
+        }
+
+        dto.traffic = new AnalyticsDTO.ChartData(labels,
+                Arrays.stream(trafficArr).boxed().toList());
+
+        // 每日成功交易筆數折線圖
+        int[] txArr = new int[days];
+
+        List<Object[]> txRows = paymentRepository.findDailySuccessTransactions(
+                eventIds, startTime, endTime);
+
+        for (Object[] row : txRows) {
+            LocalDate d = ((java.sql.Date) row[0]).toLocalDate();
+            long diff = ChronoUnit.DAYS.between(start, d);
+            if (diff >= 0 && diff < days) {
+                txArr[(int) diff] = ((Number) row[1]).intValue();
+            }
+        }
+
+        dto.transactions = new AnalyticsDTO.ChartData(
+                labels,
+                Arrays.stream(txArr).boxed().toList());
+
+        return dto;
     }
 
 }

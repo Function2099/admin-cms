@@ -1,101 +1,266 @@
-.admin-dashboard {
-    padding: 20px;
+/* admin-dashboard.css - 已隔離命名空間 */
+
+:root {
+    --admin-primary: #4e73df;
+    --admin-success: #1cc88a;
+    --admin-warning: #f6c23e;
+    --admin-danger: #e74c3c;
+    --admin-bg: #f8f9fc;
+    --admin-card-bg: #ffffff;
+    --admin-text: #5a5c69;
+    --admin-border: #e3e6f0;
 }
 
-/* 歡迎列 */
-.admin-header {
+/* 全域設定 */
+.admin-dashboard-wrapper * {
+    box-sizing: border-box;
+}
+
+.admin-dashboard-wrapper {
+    font-family: 'Nunito', 'Segoe UI', sans-serif;
+    color: var(--admin-text);
+    background-color: var(--admin-bg);
+    min-height: 100vh;
     width: 100%;
-    text-align: center;
-    font-size: 24px;
-    padding: 20px 0;
-    border: 2px solid #000;
+    overflow-x: hidden;
+}
+
+/* === Header === */
+.admin-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.admin-title-group {
+    flex-shrink: 0;
+}
+
+.admin-title-group h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #2e384d;
+    font-weight: 700;
+}
+
+.admin-title-group p {
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+    color: #858796;
+}
+
+.admin-filter-controls {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 8px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--admin-border);
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.admin-date-group input {
+    border: 1px solid #d1d3e2;
+    border-radius: 5px;
+    padding: 5px 10px;
+    white-space: nowrap;
+}
+
+.admin-date-group label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #4e73df;
+}
+
+.admin-btn-primary,
+#loginLogSearchBtn {
+    background-color: var(--admin-primary);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+/* === KPI Grid === */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* 卡片樣式 (避免使用 .box 或 .stat-card) */
+.admin-stat-card {
+    background: var(--admin-card-bg);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid #ccc;
+    transition: transform 0.2s;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.admin-stat-card.blue {
+    border-left-color: var(--admin-primary);
+}
+
+.admin-stat-card.orange {
+    border-left-color: var(--admin-warning);
+}
+
+.admin-stat-card.green {
+    border-left-color: var(--admin-success);
+}
+
+.admin-stat-card.purple {
+    border-left-color: #6f42c1;
+}
+
+.admin-stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 15px;
+    background: #eaecf4;
+    color: #5a5c69;
+}
+
+.admin-stat-info h5 {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #858796;
+}
+
+.admin-stat-info h3 {
+    margin: 5px 0 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #5a5c69;
+}
+
+/* === Charts === */
+.admin-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 992px) {
+    .admin-charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.admin-chart-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.admin-card-header h4 {
+    margin: 0 0 15px 0;
+    color: var(--admin-primary);
+    border-bottom: 1px solid #e3e6f0;
+    padding-bottom: 10px;
+}
+
+.admin-canvas-wrapper {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* === Logs Table === */
+.admin-logs-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.split-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
 }
 
-/* 整體三欄布局 */
-.admin-layout {
-    display: grid;
-    grid-template-columns: 260px 1fr 380px;
-    grid-gap: 20px;
-}
-
-/* 左側區域 */
-.left-side {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.filter-box,
-.kpi-box {
-    border: 2px solid #000;
-    padding: 15px;
-}
-
-.filter-box label {
-    margin-right: 5px;
-}
-
-/* KPI 數值 */
-.kpi-value {
-    font-size: 26px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-/* 中間折線圖區域 */
-.middle-side {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.chart-box {
-    border: 2px solid #000;
-    padding: 10px;
-    height: 330px;
-    display: flex;
-    flex-direction: column;
-}
-
-.chart-box h3 {
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.chart-box canvas {
-    flex-grow: 1;
-    width: 100% !important;
-}
-
-/* 右側登入紀錄 */
-.right-side {
-    border: 2px solid #000;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-}
-
-.log-search {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.log-table {
+.admin-modern-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 10px;
+    table-layout: fixed;
 }
 
-.log-table th,
-.log-table td {
-    border: 1px solid #aaa;
-    padding: 6px;
+.admin-modern-table th {
+    background-color: #f8f9fc;
+    color: var(--admin-primary);
+    padding: 12px;
     text-align: center;
+    border-bottom: 2px solid #e3e6f0;
 }
 
-.log-pagination {
+.admin-modern-table td {
+    padding: 12px;
     text-align: center;
-    margin-top: auto;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+
+
+/* Status Badge */
+.admin-status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.admin-status-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.admin-status-fail {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Pagination */
+.admin-pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+.admin-page-btn {
+    border: 1px solid #d1d3e2;
+    background: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.admin-page-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

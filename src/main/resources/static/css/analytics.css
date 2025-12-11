@@ -199,18 +199,3 @@ canvas {
     width: 100%;
     aspect-ratio: 1 / 1;
 }
-
-/* 管理者端的 */
-
-/* 新增針對 chart-box 的樣式 */
-.chart-box {
-    width: 100%;
-    height: 350px;
-    /* 或你喜歡的固定高度 */
-    padding: 10px;
-}
-
-.chart-box canvas {
-    width: 100% !important;
-    height: 100% !important;
-}

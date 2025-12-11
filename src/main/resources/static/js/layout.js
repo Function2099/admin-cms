@@ -97,7 +97,7 @@ window.addEventListener("DOMContentLoaded", () => {
             // Admin
             if (path.startsWith("/admin")) {
                 if (("/admin/" + dataPath) === path ||
-                    (path === "/admin/dashboard" && dataPath === "dashboard")) {
+                    (path === "/admin/dashboard" && dataPath === "admin-dashboard")) {
                     matchLink = a;
                 }
             }

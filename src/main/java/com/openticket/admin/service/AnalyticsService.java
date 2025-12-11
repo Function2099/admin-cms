@@ -23,8 +23,8 @@ import com.openticket.admin.repository.CheckoutOrderRepository;
 import com.openticket.admin.repository.EventDailyStatsRepository;
 import com.openticket.admin.repository.EventRepository;
 import com.openticket.admin.repository.EventStatsRepository;
-import com.openticket.admin.repository.PaymentRepository;
 import com.openticket.admin.repository.HomepageSessionLogRepository;
+import com.openticket.admin.repository.PaymentRepository;
 
 @Service
 public class AnalyticsService {
@@ -319,7 +319,15 @@ public class AnalyticsService {
         // 查今日交易成功率
         long success = paymentRepository.findTodaySuccessCount();
         long total = paymentRepository.findTodayTotalCount();
-        dto.successRate = (total == 0 ? 1.0 : (double) success / total);
+        double successRate;
+
+        if (total <= 0) {
+            successRate = 0.0;
+        } else {
+            successRate = (double) success / total;
+        }
+
+        dto.successRate = successRate;
 
         // 每日流量折線圖
         int[] trafficArr = new int[days];

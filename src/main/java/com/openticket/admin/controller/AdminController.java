@@ -11,7 +11,7 @@ public class AdminController {
     // 出口管理(如果有權限或session可以直接靠網址進)
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        model.addAttribute("content", "fragments/admin/dashboard :: content");
+        model.addAttribute("content", "fragments/admin/admin-dashboard :: content");
         return "index";
     }
 
@@ -30,7 +30,7 @@ public class AdminController {
     // 後台首頁分頁
     @GetMapping("/dashboard-frag")
     public String dashboardFrag(Model model) {
-        return "fragments/admin/dashboard :: content";
+        return "fragments/admin/admin-dashboard :: content";
     }
 
     // 使用者權限管理分頁

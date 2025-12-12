@@ -83,3 +83,32 @@
     .dropdown-menu li.active>a:hover {
         background-color: #5c8590;
     }
+
+    /* sidebar 分隔線 */
+    .sidebar-divider {
+        margin: 16px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 回到首頁（外部連結） */
+    .sidebar-home-link a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        color: #cfd8dc;
+        font-size: 14px;
+        opacity: 0.85;
+    }
+
+    /* icon 微調 */
+    .sidebar-home-link .icon {
+        font-size: 16px;
+    }
+
+    /* hover 效果 */
+    .sidebar-home-link a:hover {
+        background-color: #3a4b5c;
+        color: #ffffff;
+        opacity: 1;
+    }

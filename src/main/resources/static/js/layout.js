@@ -67,7 +67,8 @@ window.addEventListener("DOMContentLoaded", () => {
         let logicalPath = "";
 
         document.querySelectorAll(".sidebar a").forEach(a => {
-            if (a.classList.contains("dropdown-toggle")) return;
+            if (a.classList.contains("dropdown-toggle") ||
+                a.classList.contains("external-link")) return;
 
             const dataPath = a.dataset.path || "";
             const href = a.getAttribute("href");
@@ -140,7 +141,9 @@ window.addEventListener("DOMContentLoaded", () => {
         let matchLink = null;
 
         document.querySelectorAll(".sidebar a").forEach(a => {
-            if (a.classList.contains("dropdown-toggle")) return;
+            if (a.classList.contains("dropdown-toggle") ||
+                a.classList.contains("external-link")
+            ) return;
 
             const dataPath = a.dataset.path || "";
             // Admin
@@ -239,7 +242,7 @@ window.addEventListener("popstate", (e) => {
         .forEach(li => li.classList.remove("active"));
 
     const link = document.querySelector(
-        `.sidebar a[data-path="${logicalPath}"]`
+        `.sidebar a[data-path="${logicalPath}"]:not(.external-link)`
     );
 
     if (link) {

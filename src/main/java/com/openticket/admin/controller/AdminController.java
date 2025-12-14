@@ -1,5 +1,8 @@
 package com.openticket.admin.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,13 +16,19 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/admin")
 public class AdminController extends BaseController {
     // 出口管理(如果有權限或session可以直接靠網址進)
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("目前登入者: " + auth.getPrincipal());
+        System.out.println("目前角色: " + auth.getAuthorities());
+
         setupRole(model, session, Role.ADMIN);
         model.addAttribute("content", "fragments/admin/admin-dashboard :: content");
         return "index";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dashboard/users")
     public String users(Model model, HttpSession session) {
         setupRole(model, session, Role.ADMIN);
@@ -27,6 +36,7 @@ public class AdminController extends BaseController {
         return "index";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dashboard/orders")
     public String orders(Model model, HttpSession session) {
         setupRole(model, session, Role.ADMIN);
@@ -35,18 +45,21 @@ public class AdminController extends BaseController {
     }
 
     // 後台首頁分頁
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dashboard-frag")
     public String dashboardFrag(Model model) {
         return "fragments/admin/admin-dashboard :: content";
     }
 
     // 使用者權限管理分頁
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dashboard/users-frag")
     public String usersFrag(Model model) {
         return "fragments/admin/users :: content";
     }
 
     // 訂單管理分頁
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dashboard/orders-frag")
     public String adminOrdersFrag(Model model) {
         return "fragments/admin/orders :: content";

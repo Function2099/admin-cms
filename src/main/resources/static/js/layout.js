@@ -43,7 +43,16 @@ function loadContent(event, link) {
     );
 
     // Fetch fragment
-    fetch(url)
+
+    const token = localStorage.getItem("token");
+
+    fetch(`http://localhost:8081${url}`, {
+        headers: {
+            "Authorization": token ? `Bearer ${token}` : "",
+            "Content-Type": "text/html"
+        },
+        credentials: "include" // 保留 Cookie
+    })
         .then((response) => {
             if (!response.ok) throw new Error("載入失敗: " + url);
             return response.text();

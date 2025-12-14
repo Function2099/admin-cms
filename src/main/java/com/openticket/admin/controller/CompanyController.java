@@ -1,5 +1,6 @@
 package com.openticket.admin.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/organizer")
 public class CompanyController extends BaseController {
 
+    @PreAuthorize("hasRole('ORGANIZER')")
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
         setupRole(model, session, Role.COMPANY);
@@ -21,6 +23,7 @@ public class CompanyController extends BaseController {
         return "index";
     }
 
+    @PreAuthorize("hasRole('ORGANIZER')")
     @GetMapping("/dashboard/**")
     public String dashboardSub(HttpServletRequest request, Model model, HttpSession session) {
         setupRole(model, session, Role.COMPANY);
@@ -58,29 +61,33 @@ public class CompanyController extends BaseController {
     }
 
     // =============活動=============
-
+    @PreAuthorize("hasRole('ORGANIZER')")
     @GetMapping("/announcement-frag")
     public String annoFragment(Model model) {
         return "fragments/announcement :: content";
     }
 
+    @PreAuthorize("hasRole('ORGANIZER')")
     @GetMapping("/event-frag")
     public String eventFragment(Model model) {
         return "fragments/event :: content";
     }
 
     // =============數據分析=============
+    @PreAuthorize("hasRole('ORGANIZER')")
     @GetMapping("/analytics/traffic-frag")
     public String analyticsTraffic() {
         return "fragments/analytics/traffic :: content";
     }
 
+    @PreAuthorize("hasRole('ORGANIZER')")
     @GetMapping("/analytics/consumer-frag")
     public String analyticsConsumer() {
         return "fragments/analytics/consumer :: content";
     }
 
     // =============訂單紀錄=============
+    @PreAuthorize("hasRole('ORGANIZER')")
     @GetMapping("/orders-frag")
     public String ordersHistory() {
         return "fragments/orders :: content";

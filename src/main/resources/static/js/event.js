@@ -124,7 +124,7 @@ function initEventFormSubmit() {
 }
 
 // 編輯按鈕
-function goEdit(id, btn) {
+function goEdit(id) {
 
     const targetId = Number(id);
     const currentEditingId = editingEventId ? Number(editingEventId) : null;
@@ -286,43 +286,38 @@ function initTicketTypeLoader() {
             ticketTypes.forEach((ticket) => {
                 const row = document.createElement("tr");
                 row.id = `ticketRow_${ticket.id}`;
+                row.style.borderBottom = "1px solid #eee";
 
                 row.innerHTML = `
                 <td style="border:1px solid #ccc; padding:6px; text-align:center;">
                     <input type="checkbox" class="ticket-checkbox" value="${ticket.id}">
                 </td>
 
-                <td style="border:1px solid #ccc; padding:6px;">
-                    ${ticket.name}
-                    ${ticket.isDefault ? "(自訂)" : ""}
-                    <br>
+                <td style="padding:8px;">
+                    <div style="font-weight:bold;">${ticket.name} ${ticket.isDefault ? '<span style="font-size:0.8em; color:#888;">(預設)</span>' : ''}</div>
                 </td>
 
-                <td style="border:1px solid #ccc; padding:6px; text-align:center;">
-                    <input
-                        type="number"
-                        class="ticket-custom-price"
-                        placeholder="${ticket.price}"
-                        style="width:80px;">
+                <td style="padding:8px; text-align:center;">
+                    <input type="number" class="ticket-custom-price" 
+                            placeholder="${ticket.price}" style="width:80px; padding:4px;">
                 </td>
 
-                <td style="border:1px solid #ccc; padding:6px; text-align:center;">
-                    <input
-                        type="number"
-                        class="ticket-custom-limit"
-                        placeholder="${ticket.isLimited ? ticket.limitQuantity : ''}"
-                        style="width:80px;">
+                <td style="padding:8px; text-align:center;">
+                    <input type="number" class="ticket-custom-limit" 
+                            placeholder="${ticket.isLimited ? ticket.limitQuantity : '無'}" style="width:80px; padding:4px;">
                 </td>
 
-                <td style="border:1px solid #ccc; padding:6px;">
-                    <span>${ticket.description ?? ""}</span>
+                <td style="padding:8px; color:#666; font-size:0.9em;">
+                    ${ticket.description ? ticket.description.substring(0, 10) + (ticket.description.length > 10 ? '...' : '') : "-"}
                 </td>
-                <td><input type="checkbox" class="early-bird-checkbox"></td>
-
-                <td class="eb-days-cell"></td>
-                <td class="eb-discount-cell"></td>
-                <td class="eb-final-cell"></td>
-
+                <td style="padding:8px;">
+                    <div style="margin-bottom: 5px;">
+                        <input type="checkbox" class="early-bird-checkbox" id="eb_cb_${ticket.id}" style="cursor:pointer;">
+                        <label for="eb_cb_${ticket.id}" style="cursor:pointer; font-size:0.9rem;">啟用早鳥</label>
+                    </div>
+                    
+                    <div class="eb-settings-container" style="display:none; margin-top:4px;"></div>
+                </td>
             `;
 
                 tbody.appendChild(row);
@@ -334,50 +329,76 @@ function initTicketTypeLoader() {
 // 顯示勾選早鳥票後出現的欄位方法
 function earlyBirdForm(row) {
     const ebCheck = row.querySelector(".early-bird-checkbox");
-    const ebDaysCell = row.querySelector(".eb-days-cell");
-    const ebDiscountCell = row.querySelector(".eb-discount-cell");
-    const ebFinalCell = row.querySelector(".eb-final-cell");
+    const container = row.querySelector(".eb-settings-container");
 
     ebCheck.addEventListener("change", () => {
         if (ebCheck.checked) {
-            // 顯示三個 input 欄位
-            ebDaysCell.innerHTML = `
-            <input type="number" class="early-bird-days" placeholder="天數" style="width:60px;">
-        `;
-            ebDiscountCell.innerHTML = `
-            <input type="number" class="early-bird-discount" placeholder="1~99" style="width:60px;">
-        `;
-            ebFinalCell.innerHTML = `
-            <input type="text" class="early-bird-final-price" readonly style="width:80px; background:#eee;">
-        `;
-            // 取得剛插入的元素
-            const ebDays = ebDaysCell.querySelector(".early-bird-days");
-            const ebDiscount = ebDiscountCell.querySelector(".early-bird-discount");
-            const ebFinal = ebFinalCell.querySelector(".early-bird-final-price");
+
+            // 顯示容器
+            container.style.display = "block";
+
+            // 注入 HTML (加上 min="1" 防止輸入負數)
+            container.innerHTML = `
+                <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap; font-size:0.9rem;">
+                    <span>開始售票後</span>
+                    <input type="number" class="early-bird-days" placeholder="5" min="1" style="width:50px; padding:3px;">
+                    <span>天，打</span>
+                    <input type="number" class="early-bird-discount" placeholder="85" min="1" max="99" style="width:50px; padding:3px;">
+                    <span>折</span>
+                    <span style="color:#aaa; margin-left:5px;">➜</span>
+                    <span style="color:#e65100; font-weight:bold;">$</span>
+                    <input type="text" class="early-bird-final-price" readonly 
+                            style="width:60px; background:transparent; border:none; font-weight:bold;" tabindex="-1">
+                </div>
+            `;
+
+            const ebDiscount = container.querySelector(".early-bird-discount");
+            const ebFinal = container.querySelector(".early-bird-final-price");
+            const ebDays = container.querySelector(".early-bird-days");
+
+            // 往上找票價欄位
             const priceInput = row.querySelector(".ticket-custom-price");
 
+            // 防止負數防護
+            [ebDiscount, ebDays].forEach(input => {
+                input.addEventListener("input", function () {
+                    if (this.value < 0) this.value = Math.abs(this.value); // 轉正
+                    if (this.value === "0") this.value = ""; // 不接受 0
+                });
+            });
+
+            // 計算邏輯
             // 綁定價格計算
             const calculate = () => {
-                const basePrice = parseFloat(priceInput.value || priceInput.placeholder);
-                const rate = parseFloat(ebDiscount.value);
-                if (!rate || rate < 1 || rate > 99) {
-                    ebFinal.value = "";
+                const basePrice = parseFloat(priceInput.value) || parseFloat(priceInput.placeholder);
+                const rate = parseFloat(ebDiscount.value) || parseFloat(ebDiscount.placeholder);
+
+                if (isNaN(basePrice) || isNaN(rate)) {
+                    ebFinal.value = "-";
                     return;
                 }
+                let discountRate = rate;
+                if (rate > 10) {
+                    discountRate = rate / 100;
+                } else {
+                    discountRate = rate / 10;
+                }
 
-                const discountRate = rate / 100;
                 ebFinal.value = Math.round(basePrice * discountRate);
             };
+
+            // 當「折扣」或「原價」改變時，重新計算
             ebDiscount.addEventListener("input", calculate);
             priceInput.addEventListener("input", calculate);
+
+            // 初始化先算一次
+            calculate();
+
         } else {
-            // 不啟用 → 清空欄位
-            ebDaysCell.innerHTML = "";
-            ebDiscountCell.innerHTML = "";
-            ebFinalCell.innerHTML = "";
+            container.innerHTML = "";
+            container.style.display = "none";
         }
     });
-
 }
 
 function initLimitQuantityToggle() {

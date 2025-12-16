@@ -170,6 +170,8 @@ function initAnnouncement() {
         const formEl = $("#anno-form")[0];
         if (!formEl) return;
         $("#ann-id").val("");
+        $("#title").val("");
+        $("#content").val("");
         $("#anno-submit-btn").text("新增公告");
         $("#cancel-edit-btn, #delete-edit-btn").hide();
         $(".edit-btn").text("編輯");

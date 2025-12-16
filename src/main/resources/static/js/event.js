@@ -126,12 +126,8 @@ function initEventFormSubmit() {
 // 編輯按鈕
 function goEdit(id, btn) {
 
-    // 1. 強制轉成數字
     const targetId = Number(id);
-
-    // 2. 取得目前的編輯 ID (如果是 null 或 0，視為無效)
-    // 這裡我們把 "0" 也當作 "沒在編輯"，避免你的 savedId: 0 問題
-    const currentEditingId = (editingEventId && editingEventId !== 0) ? Number(editingEventId) : null;
+    const currentEditingId = editingEventId ? Number(editingEventId) : null;
 
     console.log("狀態檢查:", {
         targetId: targetId,
@@ -140,20 +136,15 @@ function goEdit(id, btn) {
     });
 
     if (currentEditingId !== null && currentEditingId === targetId) {
-        // 手動還原按鈕
-        btn.textContent = "編輯";
-        btn.dataset.mode = "edit";
-
+        // 取消編輯
         resetEventForm();
+        editingEventId = null;
         return;
     }
 
+
     resetEventForm();
-
-    editingEventId = id;
-
-    btn.dataset.mode = "cancel";
-    btn.textContent = "取消";
+    editingEventId = targetId;
 
     fetch(`/api/events/${targetId}`)
         .then(res => res.json())
@@ -236,6 +227,8 @@ function goEdit(id, btn) {
         .catch(err => {
             console.error("載入活動失敗：", err);
             alert("無法載入活動資料");
+            editingEventId = null;
+            loadEventList();
         });
 
     function formatDatetimeLocal(raw) {
@@ -503,22 +496,21 @@ function initTabSwitching() {
 
 // 清空活動表單方法
 function resetEventForm() {
-    // ============================================================
-    // 1. 【絕對優先區】先做跟 UI 有關的事 (學票種那邊的邏輯)
-    // ============================================================
 
     // 清除編輯狀態 ID
     editingEventId = null;
 
-    // 強制把列表上「所有」編輯按鈕都還原成「編輯」
-    // 放在第一行，保證按鈕一定會變回來，絕對不會卡死！
-    document.querySelectorAll(".edit-btn").forEach(b => {
-        b.dataset.mode = "edit";
-        b.textContent = "編輯";
-        b.disabled = false;
-        b.style.opacity = 1;
-        b.style.cursor = "pointer";
-    });
+    const form = document.getElementById("eventForm");
+    if (form) form.reset();
+
+    const coverInput = document.getElementById("cover");
+    if (coverInput) coverInput.value = "";
+
+    updateCoverPreview(null);
+
+    if (typeof clearAllTicketRows === "function") {
+        clearAllTicketRows();
+    }
 
     // 隱藏取消按鈕
     const cancelBtn = document.getElementById("eventCancelBtn");
@@ -528,32 +520,8 @@ function resetEventForm() {
     const submitBtn = document.querySelector("#eventForm button[type='submit']");
     if (submitBtn) submitBtn.textContent = "發佈活動";
 
+    loadEventList();
 
-    // ============================================================
-    // 2. 【高風險區】處理複雜資料 (加上防護罩)
-    // ============================================================
-    try {
-        // 重置表單
-        const form = document.getElementById("eventForm");
-        if (form) form.reset();
-
-        // 清空檔案輸入
-        const coverInput = document.getElementById("cover");
-        if (coverInput) coverInput.value = "";
-
-        // 【關鍵差異】活動這邊多了這些複雜功能，容易報錯，所以要包起來
-        // 就算下面這兩行出錯，上面的按鈕也已經修好了，使用者不會發現異狀
-        if (typeof updateCoverPreview === "function") {
-            try { updateCoverPreview(null); } catch (e) { console.warn("清除圖片失敗", e); }
-        }
-
-        if (typeof clearAllTicketRows === "function") {
-            try { clearAllTicketRows(); } catch (e) { console.warn("清除表格失敗", e); }
-        }
-
-    } catch (e) {
-        console.warn("重置表單發生錯誤 (但不影響按鈕操作):", e);
-    }
 }
 
 function clearAllTicketRows() {
@@ -584,7 +552,6 @@ function loadEventList() {
     fetch(url)
         .then(res => res.json())
         .then(data => {
-
             const events = data.content;
 
             if (!events || events.length === 0) {
@@ -614,12 +581,16 @@ function loadEventList() {
                 const canEdit = !(status === "已結束" || status === "已取消");
                 const canCancel = (status === "未開放");
 
+                const isEditing = editingEventId === ev.id;
+
                 let actionButtons = "";
 
                 if (canEdit) {
-                    const isEditing = editingEventId === ev.id;
-                    actionButtons += `<button class="edit-btn" onclick="goEdit(${ev.id}, this)">
-                        ${isEditing ? "取消" : "編輯"}
+                    const btnClass = isEditing ? "edit-btn editing" : "edit-btn";
+                    const btnText = isEditing ? "取消" : "編輯";
+
+                    actionButtons += `<button class="${btnClass}" onclick="goEdit(${ev.id}, this)">
+                        ${btnText}
                     </button>`;
                 } else {
                     actionButtons += `<button class="edit-btn" disabled style="opacity:0.4; cursor:not-allowed;">編輯</button>`;
@@ -686,17 +657,12 @@ function updateCoverPreview(fileOrUrl) {
 
 function initCancelEditButton() {
     const cancelBtn = document.getElementById("eventCancelBtn");
+    if (!cancelBtn) return;
     cancelBtn.addEventListener("click", () => {
         resetEventForm();
         editingEventId = null;
-
-        // 把列表中的「取消」改回「編輯」
-        document.querySelectorAll(".edit-btn").forEach(b => {
-            b.dataset.mode = "edit";
-            b.textContent = "編輯";
-        });
-
-        cancelBtn.style.display = "none";
+        // 重新載入列表以更新按鈕狀態
+        loadEventList();
     });
 }
 

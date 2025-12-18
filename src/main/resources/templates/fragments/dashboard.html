@@ -22,14 +22,22 @@
   <main class="dashboard-container">
     <section class="recent-section">
       <div class="section-header">
-        <h2>近期：新增活動</h2>
-        <button class="refresh-btn">↻ 即時更新中</button>
+        <h2>近期發布的活動</h2>
+        <div
+          class="carousel-controls"
+          id="carouselControls"
+          style="display: none"
+        >
+          <button class="carousel-btn prev-btn" id="prevBtn">&lt;</button>
+          <button class="carousel-btn next-btn" id="nextBtn">&gt;</button>
+        </div>
       </div>
 
-      <div class="card-container" id="activityContainer">
-        <!-- 無活動時顯示 -->
-        <div class="empty-state" id="emptyState">
-          <button class="add-btn">＋ 新增活動</button>
+      <div class="carousel-viewport">
+        <div class="card-container" id="activityContainer">
+          <div class="empty-state" id="emptyState">
+            <button class="add-btn">＋ 新增活動</button>
+          </div>
         </div>
       </div>
     </section>

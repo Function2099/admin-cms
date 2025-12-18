@@ -295,3 +295,67 @@
         transform: translateY(0);
     }
 }
+
+/* --- 跑馬燈 --- */
+
+.events-table th:nth-child(1),
+.events-table td:nth-child(1) {
+    width: 200px;
+    max-width: 200px;
+    overflow: hidden;
+    position: relative;
+    /* 加這行確保遮罩層級正確 */
+    z-index: 1;
+}
+
+.marquee-wrapper {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    display: block;
+    /* 加上遮罩效果：讓文字左右兩邊有漸層消失的感覺 */
+    mask-image: linear-gradient(to right, black 0%, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 0%, black 90%, transparent 100%);
+}
+
+.marquee-content {
+    display: inline-block;
+    padding-left: 0;
+    white-space: nowrap;
+    transform: translateX(0);
+}
+
+.marquee-wrapper:hover .marquee-content.enable-scroll {
+    /* 維持 linear，總時間可以稍微縮短，例如 12s */
+    animation: marquee-scroll 15s linear infinite;
+}
+
+@keyframes marquee-scroll {
+
+    /* --- 階段一：正常速度往左跑 (閱讀) --- */
+    0% {
+        transform: translateX(0);
+    }
+
+    45% {
+        transform: translateX(-105%);
+        /* 跑到左邊看不見 */
+    }
+
+    /* --- 階段二：移到右邊外面 --- */
+    45.01% {
+        transform: translateX(105%);
+    }
+
+    /* --- 階段三：回原點 --- */
+    80% {
+        transform: translateX(0);
+    }
+
+    /* --- 階段四：停頓 (留白時間) --- */
+    /* 從 55% 到 100% 都停在原點，讓使用者有時間看清楚開頭，再開始下一次循環 */
+    100% {
+        transform: translateX(0);
+    }
+}

@@ -1,22 +1,42 @@
 <div th:fragment="content">
-    <h2>使用者管理（管理者端）</h2>
+  <div class="events-container">
+    <h2 class="events-title">使用者管理（管理者端）</h2>
 
-    <input id="keyword" placeholder="搜尋姓名 / 帳號">
-    <button id="searchBtn">查詢</button>
+    <div class="events-section" style="padding: 20px; margin-bottom: 20px">
+      <div style="display: flex; gap: 10px; align-items: center">
+        <input
+          id="keyword"
+          type="text"
+          class="events-input"
+          placeholder="搜尋姓名 / 帳號"
+          style="width: 250px"
+        />
+        <button id="searchBtn" class="events-btn events-btn-primary">
+          查詢
+        </button>
+      </div>
+    </div>
 
-    <table id="userTable">
+    <div style="overflow-x: auto">
+      <table id="userTable" class="events-table">
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>帳號</th>
-                <th>姓名</th>
-                <th>角色</th>
-                <th>狀態</th>
-                <th>操作</th>
-            </tr>
+          <tr>
+            <th style="width: 60px">ID</th>
+            <th>帳號</th>
+            <th>姓名</th>
+            <th style="width: 100px">角色</th>
+            <th style="width: 80px">狀態</th>
+            <th style="width: 350px">操作</th>
+          </tr>
         </thead>
         <tbody></tbody>
-    </table>
+      </table>
+    </div>
 
-    <div id="UserPagination"></div>
+    <div
+      id="UserPagination"
+      class="events-pagination"
+      style="margin-top: 20px; justify-content: center"
+    ></div>
+  </div>
 </div>

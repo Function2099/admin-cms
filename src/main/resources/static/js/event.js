@@ -701,8 +701,6 @@ function loadEventList() {
                             <th>結束時間</th>
                             <th>售票日期</th>
                             <th>狀態</th>
-                            <th>瀏覽</th>
-                            <th>已售</th>
                             <td>編輯</td>
                         </tr>
                     </thead>
@@ -738,13 +736,15 @@ function loadEventList() {
 
                 html += `
                     <tr style="${(status === '已結束' || status === '已取消') ? 'opacity:0.5;' : ''}">
-                        <td>${ev.title}</td>
+                        <td>
+                            <div class="marquee-wrapper">
+                                <span class="marquee-content" title="${ev.title}">${ev.title}</span>
+                            </div>
+                        </td>
                         <td>${ev.eventStart ?? "未設定"}</td>
                         <td>${ev.eventEnd ?? "未設定"}</td>
                         <td>${ev.ticketStart ?? "未設定"}</td>
                         <td>${status}</td>
-                        <td>${ev.views ?? 0}</td>
-                        <td>${ev.ticketsSold ?? 0}</td>
                         <td>${actionButtons}</td>
                     </tr>
                 `;
@@ -753,6 +753,7 @@ function loadEventList() {
             html += "</tbody></table>";
             container.innerHTML = html;
             renderEventPagination(data);
+            initMarqueeDetection();
         })
         .catch(err => {
             console.error("載入活動失敗：", err);
@@ -809,8 +810,8 @@ function cancelEvent(id) {
         })
         .then(() => {
             alert("活動已取消！");
-            loadEventList();  // 重新載入
-            resetEventForm(); // 若正在編輯，也重置
+            loadEventList();
+            resetEventForm();
         })
         .catch(err => {
             console.error("取消活動錯誤:", err);
@@ -1110,6 +1111,24 @@ function resetTicketForm() {
     document.querySelectorAll(".ticket-edit-btn").forEach(b => {
         b.dataset.mode = "edit";
         b.textContent = "編輯";
+    });
+}
+
+// 跑馬燈相關
+function initMarqueeDetection() {
+    const wrappers = document.querySelectorAll('.marquee-wrapper');
+
+    wrappers.forEach(wrapper => {
+        const content = wrapper.querySelector('.marquee-content');
+
+        // 檢查：如果內容寬度 > 容器寬度，才加上動畫 class
+        // 我們這裡利用 CSS class 來控制 animation
+
+        if (content.scrollWidth > wrapper.clientWidth) {
+            content.classList.add('enable-scroll');
+        } else {
+            content.classList.remove('enable-scroll');
+        }
     });
 }
 

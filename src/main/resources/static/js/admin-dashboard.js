@@ -5,8 +5,6 @@ let adminTxChart = null;
 // 初始化
 function initAdminDashboard() {
 
-    console.log("Admin Dashboard 初始化");
-
     // 設定預設日期 (今日 與 7天前)
     const today = new Date();
     const lastWeek = new Date();

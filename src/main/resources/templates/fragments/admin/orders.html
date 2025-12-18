@@ -1,35 +1,82 @@
 <div th:fragment="content">
   <div class="events-container">
-    <h2>訂單管理（管理者端）</h2>
+    <h2 class="events-title">訂單管理（管理者端）</h2>
 
-    <div class="order-filters">
-      <input
-        type="text"
-        id="keyword"
-        placeholder="搜尋姓名 / 帳號 / 訂單編號"
-      />
-      <label>開始日期：<input type="date" id="startDate" /></label>
-      <label>結束日期：<input type="date" id="endDate" /></label>
-      <button id="searchBtn">查詢</button>
+    <div class="events-section" style="padding: 20px; margin-bottom: 20px">
+      <div
+        class="order-filters"
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 20px;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 15px">
+          <div style="display: flex; align-items: center; gap: 5px">
+            <label class="events-label" style="margin: 0; white-space: nowrap"
+              >開始日期：</label
+            >
+            <input
+              type="date"
+              id="startDate"
+              class="events-input"
+              style="width: auto"
+            />
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 5px">
+            <label class="events-label" style="margin: 0; white-space: nowrap"
+              >結束日期：</label
+            >
+            <input
+              type="date"
+              id="endDate"
+              class="events-input"
+              style="width: auto"
+            />
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px">
+          <input
+            type="text"
+            id="keyword"
+            class="events-input"
+            style="width: 250px"
+            placeholder="搜尋姓名 / 帳號 / 訂單編號"
+          />
+          <button id="searchBtn" class="events-btn events-btn-primary">
+            查詢
+          </button>
+        </div>
+      </div>
     </div>
 
-    <table id="orderTable">
-      <thead>
-        <tr>
-          <th>訂單編號</th>
-          <th>建立時間</th>
-          <th>姓名</th>
-          <th>帳號</th>
-          <th>活動名稱</th>
-          <th>張數</th>
-          <th>狀態</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div style="overflow-x: auto">
+      <table id="orderTable" class="events-table">
+        <thead>
+          <tr>
+            <th>訂單編號</th>
+            <th>建立時間</th>
+            <th>姓名</th>
+            <th>帳號</th>
+            <th>活動名稱</th>
+            <th>張數</th>
+            <th>狀態</th>
+            <th style="width: 100px">操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-    <!-- 分頁按鈕 -->
-    <div id="ordersPagination"></div>
+    <div
+      id="ordersPagination"
+      class="events-pagination"
+      style="margin-top: 20px; justify-content: center"
+    ></div>
 
     <div id="orderDetailModal" class="event-modal" style="display: none">
       <div class="event-modal-content">

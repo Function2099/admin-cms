@@ -137,4 +137,18 @@ public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Lo
                         """)
         Object[] sumTicketsAndRevenueByEventIds(@Param("eventIds") List<Long> eventIds);
 
+        @Query("""
+                        SELECT
+                            ett.event.id,
+                            SUM(co.quantity),
+                            SUM(co.quantity * co.unitPrice)
+                        FROM CheckoutOrder co
+                            JOIN co.eventTicketType ett
+                            JOIN co.order o
+                            JOIN o.payments p
+                        WHERE ett.event.id IN :eventIds
+                            AND p.status IN ('SUCCESS', 'PAID')
+                        GROUP BY ett.event.id
+                        """)
+        List<Object[]> findRevenueByEventIds(@Param("eventIds") List<Long> eventIds);
 }

@@ -7,8 +7,15 @@ let visibleEvents = 10;
 
 // 顏色
 function getColorByIndex(i) {
-    const colors = ["#ff9900", "#0077ff", "#33cc33", "#cc33ff", "#ff3333"];
-    return colors[i % colors.length];
+    const brandColors = [
+        "#f07509",
+        "#333333",
+        "#ffb74d",
+        "#6c757d",
+        "#e65100",
+        "#ced4da"
+    ];
+    return brandColors[i % brandColors.length];
 }
 
 // 主函式：讀取分析
@@ -78,46 +85,7 @@ async function loadAnalytics() {
 
     // 比較模式(compare)
     if (mode === "compare") {
-
-        // 流量圖（多條線）
-        const datasetsTraffic = eventIds.map((id, index) => ({
-            label: "活動 " + id,
-            data: data.compare[id].traffic,
-            borderWidth: 2,
-            fill: false,
-            borderColor: getColorByIndex(index)
-        }));
-
-        if (chartTraffic) chartTraffic.destroy();
-        chartTraffic = new Chart(document.getElementById("trafficChart"), {
-            type: "line",
-            data: {
-                labels: data.compare[eventIds[0]].labels,
-                datasets: datasetsTraffic
-            }
-        });
-
-        // ===== 銷售圖（多條線） =====
-        const datasetsSales = eventIds.map((id, index) => ({
-            label: "活動 " + id,
-            data: data.compare[id].sales,
-            borderWidth: 2,
-            fill: false,
-            borderColor: getColorByIndex(index)
-        }));
-
-        if (chartSales) chartSales.destroy();
-        chartSales = new Chart(document.getElementById("salesChart"), {
-            type: "line",
-            data: {
-                labels: data.compare[eventIds[0]].labels,
-                datasets: datasetsSales
-            }
-        });
-
-        // ===== 圓餅圖：目前先合併，不做多餅 =====
-        if (chartPie) chartPie.destroy();
-        renderPieChart(["比較模式無個別圓餅"], [1], ["#cccccc"]);
+        renderCompareCharts(eventIds, data);
 
         // 不支援KPI顯示(比較模式)
         document.getElementById("kpiViews").innerText = "-";
@@ -134,38 +102,82 @@ async function loadAnalytics() {
     document.getElementById("kpiConversion").innerText =
         (data.kpi.conversionRate * 100).toFixed(1) + "%";
 
-    // 流量 chart
+    const getMergeChartOptions = (bottomLabel) => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            // 底部標題
+            title: {
+                display: true,
+                position: 'bottom',
+                text: bottomLabel,
+                color: '#aaaaaa',
+                font: { size: 12, weight: 'normal' },
+                padding: { top: 15, bottom: 0 }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#f07509',
+                borderWidth: 1
+            }
+        },
+        scales: {
+            x: { grid: { display: false } }, // 隱藏 X 軸網格
+            y: {
+                beginAtZero: true,
+                border: { dash: [5, 5] }, // 虛線
+                grid: { color: '#f0f0f0' }
+            }
+        }
+    });
+
+    // 流量 chart (合併模式)
     if (chartTraffic) chartTraffic.destroy();
     chartTraffic = new Chart(document.getElementById("trafficChart"), {
         type: "line",
         data: {
             labels: data.lineCharts.traffic.labels,
             datasets: [{
-                label: "流量",
+                label: "流量", // 維持原樣
                 data: data.lineCharts.traffic.data,
-                borderColor: "#ff9900",
+                borderColor: "#f07509", // 改為標準橘色
+                backgroundColor: "#f07509",
                 borderWidth: 2,
-                tension: 0.2,
+                tension: 0.3, // 線條平滑度 (與比對模式一致)
                 fill: false
             }]
-        }
+        },
+        // 套用一致的樣式設定
+        options: getMergeChartOptions('— 數據指標：每日瀏覽人次 —')
     });
 
-    // 銷售 chart
+    // 銷售 chart (合併模式)
     if (chartSales) chartSales.destroy();
     chartSales = new Chart(document.getElementById("salesChart"), {
         type: "line",
         data: {
             labels: data.lineCharts.sales.labels,
             datasets: [{
-                label: "銷售數量",
+                label: "銷售收入", // 維持原樣
                 data: data.lineCharts.sales.data,
-                borderColor: "#0077ff",
+                borderColor: "#333333", // 改為深黑色 (符合黑白橘主題)
+                backgroundColor: "#333333",
                 borderWidth: 2,
-                tension: 0.2,
+                tension: 0.3, // 線條平滑度
                 fill: false
             }]
-        }
+        },
+        // 套用一致的樣式設定
+        options: getMergeChartOptions('— 數據指標：每日銷售收入 —')
     });
 
     // 圓餅
@@ -173,21 +185,132 @@ async function loadAnalytics() {
     let dataPie = data.ticketPie.data;
 
     if (!labelsPie || !dataPie || dataPie.length === 0 || dataPie.every(v => v === 0)) {
-
         renderPieChart(["無銷售資料"], [1], ["#cccccc"]);
         return;
     }
 
-    const dynamicColors = [
-        "#ff6600", "#0099ff", "#66cc33", "#cc33ff",
-        "#ff9933", "#6699ff", "#33cc99", "#ff3333"
-    ];
+    const generateOrangeGradient = (count) => {
+        const colors = [];
+        if (count === 1) return ["#f07509"];
+
+        const startHue = 15;
+        const endHue = 35;
+
+        const startLight = 50;
+        const endLight = 85;
+
+        const saturation = 95;
+
+        for (let i = 0; i < count; i++) {
+            const ratio = i / (count - 1);
+            const h = startHue + (ratio * (endHue - startHue));
+            const l = startLight + (ratio * (endLight - startLight));
+
+            colors.push(`hsl(${h}, ${saturation}%, ${l}%)`);
+        }
+        return colors;
+    };
 
     // 根據票種數量裁切顏色
-    let pieColors = dynamicColors.slice(0, dataPie.length);
+    let pieColors = generateOrangeGradient(dataPie.length);
 
     if (chartPie) chartPie.destroy();
     renderPieChart(labelsPie, dataPie, pieColors);
+}
+
+// 比對模式的圖表
+function renderCompareCharts(eventIds, data) {
+    const getCompareOptions = (bottomLabel) => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            // 上方圖例：顯示活動名稱
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                position: 'bottom',
+                text: bottomLabel,
+                color: '#aaaaaa',
+                font: {
+                    size: 12,
+                    weight: 'normal'
+                },
+                padding: {
+                    top: 15,
+                    bottom: 0
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#f07509',
+                borderWidth: 1
+            }
+        },
+        scales: {
+            x: {
+                grid: { display: false }
+            },
+            y: {
+                beginAtZero: true,
+                border: { dash: [5, 5] },
+                grid: { color: '#f0f0f0' }
+            }
+        }
+    });
+
+    // 1. 流量圖比對
+    const datasetsTraffic = eventIds.map((id, index) => ({
+        label: getEventLabel(id),
+        data: data.compare[id]?.traffic || [],
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3,
+        borderColor: getColorByIndex(index),
+        backgroundColor: getColorByIndex(index)
+    }));
+
+    if (chartTraffic) chartTraffic.destroy();
+    chartTraffic = new Chart(document.getElementById("trafficChart"), {
+        type: 'line',
+        data: {
+            labels: data.compare[eventIds[0]]?.labels || [],
+            datasets: datasetsTraffic
+        },
+        options: getCompareOptions('— 數據指標：每日瀏覽人次 —')
+    });
+
+    // 2. 銷售圖比對
+    const datasetsSales = eventIds.map((id, index) => ({
+        label: getEventLabel(id),
+        data: data.compare[id]?.sales || [],
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3,
+        borderColor: getColorByIndex(index),
+        backgroundColor: getColorByIndex(index)
+    }));
+
+    if (chartSales) chartSales.destroy();
+    chartSales = new Chart(document.getElementById("salesChart"), {
+        type: 'line',
+        data: {
+            labels: data.compare[eventIds[0]]?.labels || [],
+            datasets: datasetsSales
+        },
+        options: getCompareOptions('— 數據指標：每日銷售張數 —')
+    });
+
+    // 3. 比對模式不顯示圓餅
+    if (chartPie) chartPie.destroy();
+    renderPieChart(["比對模式不顯示圓餅圖"], [1], ["#eeeeee"]);
 }
 
 // 載入活動列表
@@ -277,6 +400,16 @@ function renderEventList() {
 
     // 重新綁定事件（保留你原本方法）
     initEventSelectionListener();
+}
+
+// 根據 ID 取得活動簡稱
+function getEventLabel(id) {
+    const event = allEvents.find(e => e.id == id);
+    let title = event ? event.title : `活動 ${id}`;
+    if (title.length > 5) {
+        return title.substring(0, 5) + "...";
+    }
+    return title;
 }
 
 // Checkbox + mode 監聽

@@ -1,6 +1,4 @@
 function initOrders() {
-    console.log("initOrders() 執行");
-
     //  狀態
     let selectedEvents = [];
     let allOrderEvents = [];

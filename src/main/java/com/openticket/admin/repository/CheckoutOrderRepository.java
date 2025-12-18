@@ -14,7 +14,7 @@ import com.openticket.admin.entity.CheckoutOrder;
 public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Long> {
         // 票卷銷售kpi卡片查詢邏輯
         @Query("""
-                        SELECT DATE(p.paidAt) AS day,
+                        SELECT DATE(p.createdAt) AS day,
                                 SUM(co.quantity) AS qty
                         FROM CheckoutOrder co
                                 JOIN co.order o
@@ -22,9 +22,9 @@ public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Lo
                                 JOIN co.eventTicketType ett
                         WHERE p.status IN ('SUCCESS', 'PAID')
                                 AND ett.event.id = :eventId
-                                AND p.paidAt >= :start
-                                AND p.paidAt <  :end
-                        GROUP BY DATE(p.paidAt)
+                                AND p.createdAt >= :start
+                                AND p.createdAt <  :end
+                        GROUP BY DATE(p.createdAt)
                         ORDER BY day
                         """)
         List<Object[]> findDailySalesByEvent(
@@ -56,8 +56,8 @@ public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Lo
                         JOIN ett.ticketTemplate tt
                         WHERE ett.event.id IN :eventIds
                         AND p.status IN ('SUCCESS', 'PAID')
-                        AND p.paidAt >= :startTime
-                        AND p.paidAt < :endTime
+                        AND p.createdAt >= :startTime
+                        AND p.createdAt < :endTime
                         GROUP BY tt.name
                         """)
         List<Object[]> findTicketPieData(
@@ -106,7 +106,7 @@ public interface CheckoutOrderRepository extends JpaRepository<CheckoutOrder, Lo
                         JOIN co.eventTicketType ett
                         WHERE ett.event.id IN :eventIds
                         AND p.status IN ('SUCCESS', 'PAID')
-                        AND p.paidAt IS NOT NULL
+                        AND p.createdAt IS NOT NULL
                         """)
         Object sumTotalTicketsAndRevenue(@Param("eventIds") List<Long> eventIds);
 

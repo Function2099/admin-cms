@@ -225,7 +225,6 @@ function initOrders() {
                 document.getElementById("orderDetailModal").style.display = "none";
             }
         });
-
     }
 
     //  啟動流程

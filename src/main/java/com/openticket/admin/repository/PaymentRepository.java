@@ -33,7 +33,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
         // 2. 每日成功交易筆數(Admin使用)
         @Query("""
-                        SELECT DATE(p.paidAt) AS day,
+                        SELECT DATE(p.createdAt) AS day,
                                 COUNT(p.id) AS count
                         FROM Payment p
                         JOIN p.order o
@@ -41,10 +41,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
                         JOIN co.eventTicketType ett
                         WHERE p.status = 'SUCCESS'
                                 AND ett.event.id IN :eventIds
-                                AND p.paidAt >= :start
-                                AND p.paidAt < :end
-                        GROUP BY DATE(p.paidAt)
-                        ORDER BY DATE(p.paidAt)
+                                AND p.createdAt >= :start
+                                AND p.createdAt < :end
+                        GROUP BY DATE(p.createdAt)
+                        ORDER BY DATE(p.createdAt)
                         """)
         List<Object[]> findDailySuccessTransactions(
                         @Param("eventIds") List<Long> eventIds,
@@ -56,7 +56,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
                         SELECT COUNT(p)
                         FROM Payment p
                         WHERE p.status = 'SUCCESS'
-                        AND DATE(p.paidAt) = CURRENT_DATE
+                        AND DATE(p.createdAt) = CURRENT_DATE
                         """)
         long findTodaySuccessCount();
 

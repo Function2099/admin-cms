@@ -41,7 +41,11 @@ function initActivityCards() {
             <div class="card-top">
               <img src="${imgUrl}" alt="活動圖片">
               <div class="card-content">
-                <h3>${act.title}</h3>
+                <h3>
+                    <div class="marquee-wrapper">
+                        <span class="marquee-content">${act.title}</span>
+                    </div>
+                </h3>
                 <div class="meta">
                   <span class="created">活動開始時間：</span>
                   ${startTime}
@@ -75,6 +79,7 @@ function initActivityCards() {
 
         $container.append(cardHtml);
       });
+      initMarqueeDetection();
 
       // 輪播圖相關設定
       const totalItems = activities.length;
@@ -164,7 +169,7 @@ function moveCarousel() {
 // 判斷可以顯示幾張卡片
 function getVisibleItemsCount() {
   const width = $(window).width();
-  if (width <= 600) return 1;       // 手機: 1張
-  if (width <= 992) return 2;       // 平板: 2張
+  if (width <= 720) return 1;       // 手機: 1張
+  if (width <= 1192) return 2;       // 平板: 2張
   return 3;                         // 電腦: 3張
 }

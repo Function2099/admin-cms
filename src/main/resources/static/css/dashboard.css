@@ -149,6 +149,7 @@
 /* 上半部：圖片 + 標題 + 日期 */
 .card-top {
   display: flex;
+  flex: 0 0 30%;
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
@@ -163,11 +164,20 @@
   flex-shrink: 0;
 }
 
+.card-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .card-content h3 {
   font-size: 16px;
   color: #222;
   margin: 0 0 6px 0;
   font-weight: bold;
+  display: flex;
 }
 
 .card-content .meta {
@@ -182,7 +192,8 @@
 
 /* 下半部：統計資訊區 */
 .card-bottom {
-  padding: 12px 18px 16px;
+  flex: 1;
+  padding: 16px;
 }
 
 .stats {

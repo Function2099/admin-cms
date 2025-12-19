@@ -1,5 +1,6 @@
 let editingEventId = null;
 let editingTicketId = null;
+let editorInited = false;
 
 // 查詢與排序狀態
 let eventQuery = {
@@ -7,9 +8,11 @@ let eventQuery = {
     size: 10,
     keyword: "",
     sort: "createdAt",
+    order: "desc"
 };
 
 function initEvent() {
+    initEventDescriptionEditor();
     initEventFormSubmit();
     initTicketDropdownToggle();
     initTicketTypeLoader();
@@ -45,7 +48,6 @@ function initEventFormSubmit() {
 
     // --- 2. 設定日期限制 (不能選過去) ---
     const dateInputs = ["eventStartDate", "eventEndDate", "ticketStartDate"];
-    // 取得今天的 YYYY-MM-DD (台灣時間)
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
     const today = new Date(now.getTime() - offset).toISOString().split("T")[0];
@@ -91,7 +93,7 @@ function initEventFormSubmit() {
         combineTime("ticketStartDate", "ticketStartHour", "ticketStart");
 
         // --- 邏輯檢查 ---
-        const startVal = document.getElementById("eventStart").value; // 剛剛組合好的值
+        const startVal = document.getElementById("eventStart").value;
         const endVal = document.getElementById("eventEnd").value;
 
         if (!startVal || !endVal) {
@@ -101,23 +103,48 @@ function initEventFormSubmit() {
 
         const startDate = new Date(startVal);
         const endDate = new Date(endVal);
+        const mode = editingEventId ? "edit" : "create";
 
         // 檢查：活動開始時間必須是「今天 + 7天」以後
         const limitDate = new Date();
         limitDate.setDate(limitDate.getDate() + 7);
         limitDate.setHours(0, 0, 0, 0);
 
-        if (startDate < limitDate) {
-            alert("活動開始時間必須在「一週後」才能建立！");
-            return;
+        if (mode === "create") {
+            const limitDate = new Date();
+            limitDate.setDate(limitDate.getDate() + 7);
+            limitDate.setHours(0, 0, 0, 0);
+
+            if (startDate < limitDate) {
+                alert("活動開始時間必須在「一週後」才能建立！");
+                return;
+            }
         }
+
         if (endDate <= startDate) {
             alert("活動結束時間必須晚於開始時間！");
             return;
         }
 
-        // 判斷新增 or 編輯（靠 editingEventId）
-        const mode = editingEventId ? "edit" : "create";
+        if (mode === "edit") {
+            const ticketStartVal = document.getElementById("ticketStart").value;
+            if (ticketStartVal) {
+                const ticketStartDate = new Date(ticketStartVal);
+                const now = new Date();
+
+                ticketStartDate.setSeconds(0, 0);
+
+                if (ticketStartDate <= now) {
+                    // 這裡可以選擇直接鎖定欄位，或是提示使用者
+                    const ticketStartInput = document.getElementById("ticketStartDate");
+                    if (ticketStartInput) ticketStartInput.disabled = true;
+
+                    const ticketStartHourInput = document.getElementById("ticketStartHour");
+                    if (ticketStartHourInput) ticketStartHourInput.disabled = true;
+                }
+            }
+        }
+
 
         const url = editingEventId
             ? `/api/events/${editingEventId}`
@@ -227,8 +254,13 @@ function goEdit(id, btn) {
             // 填入表單欄位
             document.getElementById("title").value = ev.title || "";
             document.getElementById("address").value = ev.address || "";
-            document.getElementById("description").value = ev.description || "";
-            // --- 時間回填邏輯 (拆解並填入) ---
+            if (tinymce.get("description")) {
+                tinymce.get("description").setContent(ev.description || "");
+            } else {
+                document.getElementById("description").value = ev.description || "";
+            }
+
+            // --- 時間回填 ---
             const fillDateTime = (isoString, dateId, hourId, hiddenId) => {
                 if (!isoString) return;
                 const d = new Date(isoString);
@@ -257,6 +289,21 @@ function goEdit(id, btn) {
             fillDateTime(ev.eventStart, "eventStartDate", "eventStartHour", "eventStart");
             fillDateTime(ev.eventEnd, "eventEndDate", "eventEndHour", "eventEnd");
             fillDateTime(ev.ticketStart, "ticketStartDate", "ticketStartHour", "ticketStart");
+
+            if (ev.ticketStart) {
+                const ticketStartDate = new Date(ev.ticketStart);
+                const now = new Date();
+                if (ticketStartDate <= now) {
+                    const ticketStartDateInput = document.getElementById("ticketStartDate");
+                    const ticketStartHourInput = document.getElementById("ticketStartHour");
+                    if (ticketStartDateInput) {
+                        ticketStartDateInput.disabled = true;
+                        ticketStartDateInput.removeAttribute("min");
+                    }
+
+                    if (ticketStartHourInput) ticketStartHourInput.disabled = true;
+                }
+            }
 
             // 展開下拉式選單
             const dropdown = document.getElementById("ticketDropdown");
@@ -568,6 +615,47 @@ function initTicketFormSubmit() {
     });
 }
 
+// 初始化活動描述文字編輯器
+function initEventDescriptionEditor() {
+    const textarea = document.getElementById("description");
+    if (!textarea) return;
+
+    // 避免重複初始化（非常重要）
+    if (tinymce.get("description")) {
+        tinymce.get("description").remove();
+    }
+
+    tinymce.init({
+        selector: "#description",
+        height: 300,
+        menubar: false,
+        branding: false,
+        statusbar: false,
+        license_key: 'gpl',
+
+        plugins: "lists link table code preview wordcount",
+        toolbar:
+            "undo redo | bold italic underline | " +
+            "alignleft aligncenter alignright | " +
+            "bullist numlist | link table | hr |" +
+            "code preview",
+
+        content_style: `
+            body { text-align: center; }
+            ul, ol { display: inline-block; text-align: left; }
+        `,
+
+
+        // 讓 form submit 時自動同步回 textarea
+        setup(editor) {
+            editor.on("change keyup", () => {
+                editor.save();
+            });
+        }
+    });
+}
+
+
 function showTab(tabName) {
     const eventTab = document.getElementById("eventTab");
     const ticketTab = document.getElementById("ticketTab");
@@ -584,6 +672,11 @@ function showTab(tabName) {
         ticketTab.style.display = "none";
         eventTabBtn.classList.add("active");
         ticketTabBtn.classList.remove("active");
+    }
+
+    if (tabName === "event" && !editorInited) {
+        initEventDescriptionEditor();
+        editorInited = true;
     }
 }
 
@@ -637,6 +730,10 @@ function resetEventForm() {
 
     if (typeof clearAllTicketRows === "function") {
         clearAllTicketRows();
+    }
+
+    if (tinymce.get("description")) {
+        tinymce.get("description").setContent("");
     }
 
     // 隱藏取消按鈕
@@ -729,7 +826,7 @@ function loadEventList() {
                     actionButtons += `
                         <button class="events-btn events-btn-danger cancel-btn"
                                 onclick="cancelEvent(${ev.id})"
-                                style="color:red; margin-left:6px;">
+                                margin-left:6px;">
                             取消活動
                         </button>`;
                 }
@@ -841,29 +938,39 @@ function initEventSortButtons() {
     const sortEventBtn = document.getElementById("sortEventBtn");
 
     sortCreateBtn.addEventListener("click", () => {
-        eventQuery.sort = "createdAt";
-        eventQuery.page = 1;
-        loadEventList();
-        highlightSortButton();
+        toggleSort("createdAt");
     });
 
     sortEventBtn.addEventListener("click", () => {
-        eventQuery.sort = "eventStart";
-        eventQuery.page = 1;
-        loadEventList();
-        highlightSortButton();
+        toggleSort("eventStart");
     });
 }
 
-function highlightSortButton() {
-    document.getElementById("sortCreateBtn").classList.remove("active");
-    document.getElementById("sortEventBtn").classList.remove("active");
-
-    if (eventQuery.sort === "createdAt") {
-        document.getElementById("sortCreateBtn").classList.add("active");
+function toggleSort(field) {
+    if (eventQuery.sort === field) {
+        // 同一欄位 → 反轉排序方向
+        eventQuery.order = eventQuery.order === "asc" ? "desc" : "asc";
     } else {
-        document.getElementById("sortEventBtn").classList.add("active");
+        // 換欄位 → 預設為升序
+        eventQuery.sort = field;
+        eventQuery.order = "asc";
     }
+
+    eventQuery.page = 1;
+    loadEventList();
+    highlightSortButton();
+}
+
+function highlightSortButton() {
+    const createBtn = document.getElementById("sortCreateBtn");
+    const eventBtn = document.getElementById("sortEventBtn");
+
+    createBtn.classList.remove("active", "asc", "desc");
+    eventBtn.classList.remove("active", "asc", "desc");
+
+    const activeBtn = eventQuery.sort === "createdAt" ? createBtn : eventBtn;
+    activeBtn.classList.add("active");
+    activeBtn.classList.add(eventQuery.order); // 加上 asc 或 desc 樣式
 }
 
 function renderEventPagination(data) {

@@ -55,7 +55,7 @@ public class DashboardService {
                 Map<Long, EventStats> statsMap = allStats.stream()
                                 .collect(Collectors.toMap(EventStats::getId, Function.identity()));
 
-                // 4. 批次查詢營收 (Map) - 🔥 這裡會開始使用 TicketRevenueDTO
+                // 4. 批次查詢營收 (Map) - 這裡會開始使用 TicketRevenueDTO
                 List<Object[]> revenueData = checkoutOrderRepository.findRevenueByEventIds(eventIds);
 
                 // 建立一個 Map，Value 就是我們定義的 TicketRevenueDTO
@@ -66,7 +66,6 @@ public class DashboardService {
                         Integer sold = row[1] != null ? ((Number) row[1]).intValue() : 0;
                         Long rev = row[2] != null ? ((Number) row[2]).longValue() : 0L;
 
-                        // 🔥 使用點 1：這裡會 new TicketRevenueDTO(...)
                         revenueMap.put(eId, new TicketRevenueDTO(sold, rev));
                 }
 
@@ -89,7 +88,7 @@ public class DashboardService {
                         dto.setShares(stats != null ? stats.getShares() : 0);
 
                         // 填入營收
-                        // 🔥 使用點 2：這裡會把 TicketRevenueDTO 取出來用
+
                         TicketRevenueDTO revData = revenueMap.getOrDefault(e.getId(), new TicketRevenueDTO(0, 0L));
 
                         // 注意：如果是 record，取值要用 .tickets() 和 .revenue() (有括號)
@@ -99,45 +98,6 @@ public class DashboardService {
 
                         return dto;
                 }).toList();
-        }
-
-        // ========== 封裝：Event -> EventListItemDTO ==========
-        private EventListItemDTO toDTO(Event e) {
-
-                EventListItemDTO dto = new EventListItemDTO();
-
-                dto.setId(e.getId());
-                dto.setTitle(e.getTitle());
-                dto.setEventStart(e.getEventStartFormatted());
-                dto.setEventEnd(e.getEventEndFormatted());
-                dto.setTicketStart(e.getTicketStartFormatted());
-                dto.setCreatedAt(e.getCreatedAtIso());
-                dto.setStatus(eventService.calculateDynamicStatus(e));
-                dto.setImages(e.getImages());
-
-                // ===== 從 event_stats 拿流量 & 分享 =====
-                EventStats stats = eventStatsRepository.findById(e.getId()).orElse(null);
-                dto.setViews(stats != null ? stats.getViews() : 0);
-                dto.setShares(stats != null ? stats.getShares() : 0);
-
-                // ===== 從 checkout_orders 取得售出票數 + 總營收 =====
-                List<Object[]> rows = checkoutOrderRepository.sumTicketsAndRevenueByEvent(e.getId());
-
-                if (rows != null && !rows.isEmpty()) {
-                        Object[] row = rows.get(0);
-
-                        dto.setTicketsSold(
-                                        row[0] != null ? ((Number) row[0]).intValue() : 0);
-
-                        dto.setRevenue(
-                                        row[1] != null ? ((java.math.BigDecimal) row[1]).longValue() : 0L);
-
-                } else {
-                        dto.setTicketsSold(0);
-                        dto.setRevenue(0L);
-                }
-
-                return dto;
         }
 
         public Map<String, Object> getOrganizerKpi(Long companyId) {

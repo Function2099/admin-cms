@@ -1,7 +1,5 @@
 package com.openticket.admin.repository;
 
-import com.openticket.admin.entity.Event;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.openticket.admin.entity.Event;
 
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
@@ -36,6 +36,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @SuppressWarnings("null")
     @EntityGraph(attributePaths = { "images", "status" })
+    @Override
     List<Event> findAll();
 
     @Query(value = """

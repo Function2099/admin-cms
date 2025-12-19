@@ -296,6 +296,10 @@
     }
 }
 
+.tox .tox-toolbar__primary {
+    justify-content: center !important;
+}
+
 /* --- 跑馬燈 --- */
 
 .events-table th:nth-child(1),
@@ -338,23 +342,22 @@
         transform: translateX(0);
     }
 
-    45% {
+    70% {
         transform: translateX(-105%);
         /* 跑到左邊看不見 */
     }
 
     /* --- 階段二：移到右邊外面 --- */
-    45.01% {
+    70.01% {
         transform: translateX(105%);
     }
 
     /* --- 階段三：回原點 --- */
-    80% {
+    92% {
         transform: translateX(0);
     }
 
     /* --- 階段四：停頓 (留白時間) --- */
-    /* 從 55% 到 100% 都停在原點，讓使用者有時間看清楚開頭，再開始下一次循環 */
     100% {
         transform: translateX(0);
     }

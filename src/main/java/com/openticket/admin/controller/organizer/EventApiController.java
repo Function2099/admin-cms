@@ -109,14 +109,18 @@ public class EventApiController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String keyword,
-            @RequestParam(defaultValue = "createdAt") String sort) {
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "desc") String order) {
         Long companyId = loginCompanyProvider.getCompanyId();
 
+        Sort.Direction direction = order.equalsIgnoreCase("asc")
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
         Pageable pageable = PageRequest.of(
-                page - 1, // Spring page 從 0 開始
+                page - 1,
                 size,
-                Sort.by(Sort.Direction.DESC, sort) // 動態排序
-        );
+                Sort.by(direction, sort));
 
         Page<Event> eventPage;
 

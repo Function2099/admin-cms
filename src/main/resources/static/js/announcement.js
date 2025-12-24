@@ -100,6 +100,11 @@ function initAnnouncement() {
             success: function () {
                 resetForm();
                 loadWithCondition(currentPage);
+                if (id) {
+                    alert("編輯完成！");
+                } else {
+                    alert("新增完成！");
+                }
             },
             error: function (xhr) {
                 console.error("送出失敗：", xhr.responseText);

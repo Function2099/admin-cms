@@ -138,7 +138,6 @@
     background: #d66505;
 }
 
-
 /* === 活動相關Modal === */
 .event-modal {
     display: none;
@@ -153,6 +152,7 @@
     padding: 16px;
     /* 讓內容跟螢幕邊緣有一點距離 */
     box-sizing: border-box;
+    z-index: 9999;
 }
 
 /* 把這段「整個」換掉你原本的 event-modal-content 定義 */

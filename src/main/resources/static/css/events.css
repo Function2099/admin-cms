@@ -118,6 +118,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    margin: 6px;
 }
 
 .events-btn-primary {
@@ -361,4 +362,33 @@
     100% {
         transform: translateX(0);
     }
+}
+
+.text-left {
+    text-align: left !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.events-action-group {
+    display: flex;
+    /* 彈性佈局 */
+    align-items: center;
+    /* 垂直置中 */
+    justify-content: center;
+    /* 水平置中 */
+    gap: 8px;
+    /* 按鈕之間的間距，這是質感的關鍵 */
+}
+
+.events-table .events-btn {
+    font-size: 13px;
+    white-space: nowrap;
+    line-height: 1.2;
 }

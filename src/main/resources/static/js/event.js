@@ -701,10 +701,11 @@ function initEventDescriptionEditor() {
         },
 
         content_style: `
-            body { text-align: center; }
             ul, ol { display: inline-block; text-align: left; }
+            .text-left { text-align: left !important; }
+            .text-center { text-align: center !important; }
+            .text-right { text-align: right !important; }
         `,
-
 
         // 讓 form submit 時自動同步回 textarea
         setup(editor) {
@@ -782,6 +783,25 @@ function resetEventForm() {
     document.getElementById("eventStart").value = "";
     document.getElementById("eventEnd").value = "";
     document.getElementById("ticketStart").value = "";
+
+    const ticketStartDateInput = document.getElementById("ticketStartDate");
+    const ticketStartHourInput = document.getElementById("ticketStartHour");
+
+    if (ticketStartDateInput) {
+        // 1. 解除鎖定
+        ticketStartDateInput.disabled = false;
+
+        // 2. 恢復原本的日期限制 (今天以後)
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const today = new Date(now.getTime() - offset).toISOString().split("T")[0];
+        ticketStartDateInput.min = today;
+    }
+
+    if (ticketStartHourInput) {
+        // 3. 解除小時選單鎖定
+        ticketStartHourInput.disabled = false;
+    }
 
     const coverInput = document.getElementById("cover");
     if (coverInput) coverInput.value = "";
@@ -885,8 +905,7 @@ function loadEventList() {
                 if (canCancel) {
                     actionButtons += `
                         <button class="events-btn events-btn-danger cancel-btn"
-                                onclick="cancelEvent(${ev.id})"
-                                margin-left:6px;">
+                                onclick="cancelEvent(${ev.id})">
                             取消活動
                         </button>`;
                 }

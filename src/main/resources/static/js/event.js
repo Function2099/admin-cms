@@ -479,9 +479,13 @@ function initTicketTypeLoader() {
 
                 <td style="padding: 8px;">
                     <div class="events-ticket-name-wrapper">
-                        <span class="events-ticket-name">
-                            ${ticket.name} ${ticket.isDefault ? '<span style="font-size:0.8em; color:#888;">(預設)</span>' : ''}
-                        </span>
+                        <div class="marquee-wrapper">
+                            <div class="marquee-content enable-scroll">
+                                <span class="events-ticket-name">
+                                    ${ticket.name} ${ticket.isDefault ? '<span style="font-size:0.8em; color:#888;">(預設)</span>' : ''}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </td>
 

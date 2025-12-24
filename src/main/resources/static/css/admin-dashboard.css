@@ -264,3 +264,19 @@
     justify-content: center;
     align-items: center;
 }
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-success {
+    color: #1cc88a;
+    /* 綠色字 */
+}
+
+.status-fail {
+    color: #e74a3b;
+    /* 紅色字 */
+}

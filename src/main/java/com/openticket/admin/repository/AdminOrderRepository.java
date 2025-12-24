@@ -33,7 +33,8 @@ public interface AdminOrderRepository extends JpaRepository<Order, Long> {
             WHERE (:keyword IS NULL
                     OR u.username LIKE CONCAT('%', :keyword, '%')
                     OR u.account LIKE CONCAT('%', :keyword, '%')
-                    OR CAST(o.id AS string) LIKE CONCAT('%', :keyword, '%'))
+                    OR CAST(o.id AS string) LIKE CONCAT('%', :keyword, '%')
+                    OR e.title LIKE CONCAT('%', :keyword, '%'))
                 AND (:start IS NULL OR o.createdAt >= :start)
                 AND (:end   IS NULL OR o.createdAt <= :end)
             GROUP BY o.id, o.createdAt, u.username, u.account, e.title, o.status

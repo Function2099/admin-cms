@@ -1,16 +1,10 @@
 <div th:fragment="content">
   <div class="events-container">
-    <h2 class="events-title">使用者管理</h2>
+    <h2 class="events-title">使用者權限管理</h2>
 
     <div class="events-section" style="padding: 20px; margin-bottom: 20px">
       <div style="display: flex; gap: 10px; align-items: center">
-        <input
-          id="keyword"
-          type="text"
-          class="events-input"
-          placeholder="搜尋姓名 / 帳號"
-          style="width: 250px"
-        />
+        <input id="keyword" type="text" class="events-input" placeholder="搜尋姓名 / 帳號" style="width: 250px" />
         <button id="searchBtn" class="events-btn events-btn-primary">
           查詢
         </button>
@@ -33,10 +27,6 @@
       </table>
     </div>
 
-    <div
-      id="UserPagination"
-      class="events-pagination"
-      style="margin-top: 20px; justify-content: center"
-    ></div>
+    <div id="UserPagination" class="events-pagination" style="margin-top: 20px; justify-content: center"></div>
   </div>
 </div>

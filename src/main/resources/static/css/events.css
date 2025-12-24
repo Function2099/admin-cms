@@ -33,7 +33,7 @@
     border: 1px solid var(--events-border);
     border-radius: var(--events-radius);
     padding: 20px;
-    margin-bottom: 30px;
+    /* margin-bottom: 30px; */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 

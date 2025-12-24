@@ -18,6 +18,7 @@ public interface LoginLogRepository extends JpaRepository<LoginLog, Long> {
                 OR l.userAgent LIKE CONCAT('%', :keyword, '%')
                 OR l.status LIKE CONCAT('%', :keyword, '%')
                 OR l.user.account LIKE CONCAT('%', :keyword, '%'))
+            ORDER BY l.loginTime DESC
             """)
     Page<LoginLog> searchLoginLogs(
             @Param("keyword") String keyword,

@@ -3,50 +3,27 @@
     <h2 class="events-title">訂單管理（管理者端）</h2>
 
     <div class="events-section" style="padding: 20px; margin-bottom: 20px">
-      <div
-        class="order-filters"
-        style="
+      <div class="order-filters" style="
           display: flex;
           justify-content: space-between;
           align-items: center;
           flex-wrap: wrap;
           gap: 20px;
-        "
-      >
+        ">
         <div style="display: flex; align-items: center; gap: 15px">
           <div style="display: flex; align-items: center; gap: 5px">
-            <label class="events-label" style="margin: 0; white-space: nowrap"
-              >開始日期：</label
-            >
-            <input
-              type="date"
-              id="startDate"
-              class="events-input"
-              style="width: auto"
-            />
+            <label class="events-label" style="margin: 0; white-space: nowrap">開始日期：</label>
+            <input type="date" id="startDate" class="events-input" style="width: auto" />
           </div>
 
           <div style="display: flex; align-items: center; gap: 5px">
-            <label class="events-label" style="margin: 0; white-space: nowrap"
-              >結束日期：</label
-            >
-            <input
-              type="date"
-              id="endDate"
-              class="events-input"
-              style="width: auto"
-            />
+            <label class="events-label" style="margin: 0; white-space: nowrap">結束日期：</label>
+            <input type="date" id="endDate" class="events-input" style="width: auto" />
           </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px">
-          <input
-            type="text"
-            id="keyword"
-            class="events-input"
-            style="width: 250px"
-            placeholder="搜尋姓名 / 帳號 / 訂單編號"
-          />
+          <input type="text" id="keyword" class="events-input" style="width: 250px" placeholder="搜尋姓名 / 帳號 / 訂單編號" />
           <button id="searchBtn" class="events-btn events-btn-primary">
             查詢
           </button>
@@ -55,7 +32,7 @@
     </div>
 
     <div style="overflow-x: auto">
-      <table id="orderTable" class="events-table">
+      <table id="orderTable" class="events-table orders-table">
         <thead>
           <tr>
             <th>訂單編號</th>
@@ -72,23 +49,16 @@
       </table>
     </div>
 
-    <div
-      id="ordersPagination"
-      class="events-pagination"
-      style="margin-top: 20px; justify-content: center"
-    ></div>
+    <div id="ordersPagination" class="events-pagination" style="margin-top: 20px; justify-content: center"></div>
 
     <div id="orderDetailModal" class="event-modal" style="display: none">
       <div class="event-modal-content">
-        <h3
-          class="events-title"
-          style="
+        <h3 class="events-title" style="
             margin-top: 0;
             font-size: 1.5rem;
             border-left: none;
             padding-left: 0;
-          "
-        >
+          ">
           訂單明細
         </h3>
 
@@ -108,10 +78,7 @@
                 <td colspan="3" style="text-align: right; padding-right: 20px">
                   總金額
                 </td>
-                <td
-                  id="orderDetailTotal"
-                  style="color: #f07509; font-size: 1.1rem"
-                ></td>
+                <td id="orderDetailTotal" style="color: #f07509; font-size: 1.1rem"></td>
               </tr>
             </tfoot>
           </table>

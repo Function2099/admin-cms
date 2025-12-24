@@ -10,13 +10,13 @@ import com.openticket.admin.entity.User;
 
 public interface AdminUserRepository extends JpaRepository<User, Long> {
 
-    @Query("""
-                SELECT u FROM User u
-                WHERE (:keyword IS NULL
-                    OR u.username LIKE CONCAT('%', :keyword, '%')
-                    OR u.account LIKE CONCAT('%', :keyword, '%'))
-            """)
-    Page<User> searchUsers(
-            @Param("keyword") String keyword,
-            Pageable pageable);
+        @Query("""
+                        SELECT u FROM User u
+                        WHERE (:keyword IS NULL
+                                OR u.username LIKE CONCAT('%', :keyword, '%')
+                                OR u.account LIKE CONCAT('%', :keyword, '%'))
+                        """)
+        Page<User> searchUsers(
+                        @Param("keyword") String keyword,
+                        Pageable pageable);
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -230,12 +231,36 @@ public class EventApiController {
                         .body("此活動狀態為「" + status + "」，不可編輯");
             }
 
+            boolean isOngoing = "活動進行中".equals(status);
+
             // 2. 更新基本欄位
+            if (isOngoing) {
+
+                boolean eventStartChanged = updated.getEventStart() != null &&
+                        !Objects.equals(event.getEventStart(), updated.getEventStart());
+
+                boolean eventEndChanged = updated.getEventEnd() != null &&
+                        !Objects.equals(event.getEventEnd(), updated.getEventEnd());
+
+                boolean ticketStartChanged = updated.getTicketStart() != null &&
+                        !Objects.equals(event.getTicketStart(), updated.getTicketStart());
+
+                if (eventStartChanged || eventEndChanged || ticketStartChanged) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body("活動進行中，不可修改任何時間");
+                }
+            }
+
+            // 3. 永遠可修改的欄位
             event.setTitle(updated.getTitle());
             event.setAddress(updated.getAddress());
-            event.setEventStart(updated.getEventStart());
-            event.setEventEnd(updated.getEventEnd());
-            event.setTicketStart(updated.getTicketStart());
+
+            // 4. 只有「未進行中」才允許改時間
+            if (!isOngoing) {
+                event.setEventStart(updated.getEventStart());
+                event.setEventEnd(updated.getEventEnd());
+                event.setTicketStart(updated.getTicketStart());
+            }
 
             // 3. 更新 event_detail
             String content = request.getParameter("description");

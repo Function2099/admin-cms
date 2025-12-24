@@ -87,10 +87,19 @@ function initEventFormSubmit() {
             }
         };
 
+        const isOngoing =
+            editingEventId &&
+            isEventOngoing({
+                eventStart: document.getElementById("eventStart").value,
+                eventEnd: document.getElementById("eventEnd").value
+            });
+
         // 執行組合
-        combineTime("eventStartDate", "eventStartHour", "eventStart");
-        combineTime("eventEndDate", "eventEndHour", "eventEnd");
-        combineTime("ticketStartDate", "ticketStartHour", "ticketStart");
+        if (!isOngoing) {
+            combineTime("eventStartDate", "eventStartHour", "eventStart");
+            combineTime("eventEndDate", "eventEndHour", "eventEnd");
+            combineTime("ticketStartDate", "ticketStartHour", "ticketStart");
+        }
 
         // --- 邏輯檢查 ---
         const startVal = document.getElementById("eventStart").value;
@@ -144,7 +153,6 @@ function initEventFormSubmit() {
                 }
             }
         }
-
 
         const url = editingEventId
             ? `/api/events/${editingEventId}`
@@ -290,6 +298,10 @@ function goEdit(id, btn) {
             fillDateTime(ev.eventEnd, "eventEndDate", "eventEndHour", "eventEnd");
             fillDateTime(ev.ticketStart, "ticketStartDate", "ticketStartHour", "ticketStart");
 
+            if (isEventOngoing(ev)) {
+                lockAllTimeFields();
+            }
+
             if (ev.ticketStart) {
                 const ticketStartDate = new Date(ev.ticketStart);
                 const now = new Date();
@@ -385,6 +397,33 @@ function goEdit(id, btn) {
         // yyyy-MM-ddTHH:00
         return d.toISOString().slice(0, 16);
     }
+}
+
+function isEventOngoing(ev) {
+    const now = new Date();
+    const start = ev.eventStart ? new Date(ev.eventStart) : null;
+    const end = ev.eventEnd ? new Date(ev.eventEnd) : null;
+
+    return start && end && now >= start && now <= end;
+}
+
+function lockAllTimeFields() {
+    const ids = [
+        "eventStartDate",
+        "eventStartHour",
+        "eventEndDate",
+        "eventEndHour",
+        "ticketStartDate",
+        "ticketStartHour"
+    ];
+
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.disabled = true;
+            el.removeAttribute("min"); // 避免 disabled + min 衝突
+        }
+    });
 }
 
 // 下拉選單初始化

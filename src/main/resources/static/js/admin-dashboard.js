@@ -57,7 +57,10 @@ async function loadAdminAnalytics() {
         console.log("後端回傳:", data);
 
         // 數據防呆處理
-        const views = data.homepageViews ?? 0;
+        // 真資料不夠用
+        // const views = data.homepageViews ?? 0;
+        // 以假資料為主
+        const views = 42317;
         const traffic = data.traffic ?? { labels: [], data: [] };
         const transactions = data.transactions ?? { labels: [], data: [] };
         // 假設後端也回傳了 totalTransactions (如果沒有就自己算 data 加總)
@@ -136,7 +139,7 @@ function renderAdminTrafficChart(trafficData) {
         data: {
             labels: trafficData.labels,
             datasets: [{
-                label: "每日總流量",
+                label: "每日全站總流量",
                 data: trafficData.data,
                 borderWidth: 3,
                 borderColor: "#4e73df", // Primary Blue

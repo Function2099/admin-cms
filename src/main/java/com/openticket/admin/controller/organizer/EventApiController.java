@@ -1,17 +1,11 @@
 package com.openticket.admin.controller.organizer;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
@@ -26,32 +20,28 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openticket.admin.dto.EventListItemDTO;
-import com.openticket.admin.dto.EventTicketRequest;
 import com.openticket.admin.dto.EventTitleDTO;
 import com.openticket.admin.entity.Event;
-import com.openticket.admin.entity.EventDetail;
-import com.openticket.admin.entity.EventStatus;
-import com.openticket.admin.entity.EventTitlePage;
-import com.openticket.admin.repository.EventDetailRepository;
-import com.openticket.admin.repository.EventRepository;
-import com.openticket.admin.repository.EventStatusRepository;
 import com.openticket.admin.security.LoginCompanyProvider;
 import com.openticket.admin.service.DashboardService;
-import com.openticket.admin.service.SmbStorageService;
 import com.openticket.admin.service.event.EventCreationService;
 import com.openticket.admin.service.event.EventQueryService;
 import com.openticket.admin.service.event.EventService;
-import com.openticket.admin.service.event.EventTicketTypeService;
-
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * 活動管理核心 API 控制器
+ * 負責活動的 CRUD、狀態控制、圖片上傳及分頁查詢
+ */
 @RestController
 @RequestMapping("/api/events")
 public class EventApiController {
 
+    /**
+     * 安全性控制：禁止前端透過自動綁定修改敏感欄位
+     * 避免 Mass Assignment 攻擊
+     */
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         binder.setDisallowedFields(
@@ -79,18 +69,6 @@ public class EventApiController {
     private EventService eventService;
 
     @Autowired
-    private EventRepository eventRepository;
-
-    @Autowired
-    private EventStatusRepository eventStatusRepository;
-
-    @Autowired
-    private EventTicketTypeService eventTicketTypeService;
-
-    @Autowired
-    private EventDetailRepository eventDetailRepository;
-
-    @Autowired
     private EventQueryService eventQueryService;
 
     @Autowired
@@ -100,11 +78,12 @@ public class EventApiController {
     private DashboardService dashboardService;
 
     @Autowired
-    private SmbStorageService smbStorageService;
-
-    @Autowired
     private LoginCompanyProvider loginCompanyProvider;
 
+    /**
+     * 多條件分頁查詢活動列表
+     * 包含關鍵字搜尋與動態狀態 DTO 轉換
+     */
     @GetMapping
     public Page<EventListItemDTO> getPagedEvents(
             @RequestParam(defaultValue = "1") int page,
@@ -112,43 +91,10 @@ public class EventApiController {
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "createdAt") String sort,
             @RequestParam(defaultValue = "desc") String order) {
+
         Long companyId = loginCompanyProvider.getCompanyId();
-
-        Sort.Direction direction = order.equalsIgnoreCase("asc")
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-
-        Pageable pageable = PageRequest.of(
-                page - 1,
-                size,
-                Sort.by(direction, sort));
-
-        Page<Event> eventPage;
-
-        if (keyword == null || keyword.isBlank()) {
-            eventPage = eventRepository.findByCompanyUserId(companyId, pageable);
-        } else {
-            eventPage = eventRepository.searchByCompanyUserId(
-                    companyId,
-                    "%" + keyword + "%",
-                    pageable);
-        }
-
-        // 轉成 DTO（Page<Entity> -> Page<DTO>）
-        return eventPage.map(event -> {
-            EventListItemDTO dto = new EventListItemDTO();
-            dto.setId(event.getId());
-            dto.setTitle(event.getTitle());
-            dto.setEventStart(event.getEventStartFormatted());
-            dto.setEventEnd(event.getEventEndFormatted());
-            dto.setTicketStart(event.getTicketStartFormatted());
-            dto.setCreatedAt(event.getCreatedAtIso());
-            dto.setStatus(eventService.calculateDynamicStatus(event));
-            dto.setViews(0);
-            dto.setTicketsSold(0);
-            dto.setImages(event.getImages());
-            return dto;
-        });
+        // 呼叫 Service 的新方法
+        return eventService.searchEvents(companyId, page, size, keyword, sort, order);
     }
 
     @GetMapping("/latest")
@@ -157,6 +103,10 @@ public class EventApiController {
         return dashboardService.getLatestEvents(companyId);
     }
 
+    /**
+     * 建立新活動
+     * 處理 Multipart (圖片) 與 JSON 混合數據
+     */
     @PostMapping("/create")
     public ResponseEntity<?> createEvent(
             @ModelAttribute Event event,
@@ -178,37 +128,14 @@ public class EventApiController {
         }
     }
 
+    /**
+     * 更新活動資訊
+     * 包含嚴格的業務檢核：活動進行中不可修改關鍵時間
+     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getEventById(@PathVariable Long id) {
         Long companyId = loginCompanyProvider.getCompanyId();
-        Event event = eventService.findOwnedEvent(id, companyId);
-
-        // 活動描述
-        EventDetail detail = eventDetailRepository.findByEventId(event.getId());
-        String description = detail != null ? detail.getContent() : "";
-        List<EventTicketRequest> selectedTickets = eventTicketTypeService.findByEventId(event.getId());
-
-        // 新增：計算哪些票種已經有訂單，不可刪除
-        List<Long> cannotDeleteIds = event.getEventTicketTypes().stream()
-                .filter(e -> e.getCheckoutOrders() != null && !e.getCheckoutOrders().isEmpty())
-                .map(e -> e.getTicketTemplate().getId())
-                .toList();
-
-        // 組合回傳 JSON
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", event.getId());
-        result.put("title", event.getTitle());
-        result.put("address", event.getAddress());
-        result.put("eventStart", event.getEventStart());
-        result.put("eventEnd", event.getEventEnd());
-        result.put("ticketStart", event.getTicketStart());
-        result.put("description", description);
-        result.put("selectedTickets", selectedTickets);
-        result.put("images", event.getImages());
-        result.put("createdAt", event.getCreatedAtIso());
-
-        result.put("cannotDeleteTicketIds", cannotDeleteIds);
-        result.put("eventStatus", eventService.calculateDynamicStatus(event));
+        Map<String, Object> result = eventService.getEventDetails(id, companyId);
         return ResponseEntity.ok(result);
     }
 
@@ -221,101 +148,17 @@ public class EventApiController {
 
         try {
             Long companyId = loginCompanyProvider.getCompanyId();
-            Event event = eventService.findOwnedEvent(id, companyId);
+            String description = request.getParameter("description");
+            String ticketJson = request.getParameter("eventTicketsJson");
 
-            // 1. 若活動不可編輯
-            String status = eventService.calculateDynamicStatus(event);
-
-            if ("已取消".equals(status) || "已結束".equals(status)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("此活動狀態為「" + status + "」，不可編輯");
-            }
-
-            boolean isOngoing = "活動進行中".equals(status);
-
-            // 2. 更新基本欄位
-            if (isOngoing) {
-
-                boolean eventStartChanged = updated.getEventStart() != null &&
-                        !Objects.equals(event.getEventStart(), updated.getEventStart());
-
-                boolean eventEndChanged = updated.getEventEnd() != null &&
-                        !Objects.equals(event.getEventEnd(), updated.getEventEnd());
-
-                boolean ticketStartChanged = updated.getTicketStart() != null &&
-                        !Objects.equals(event.getTicketStart(), updated.getTicketStart());
-
-                if (eventStartChanged || eventEndChanged || ticketStartChanged) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body("活動進行中，不可修改任何時間");
-                }
-            }
-
-            // 3. 永遠可修改的欄位
-            event.setTitle(updated.getTitle());
-            event.setAddress(updated.getAddress());
-
-            // 4. 只有「未進行中」才允許改時間
-            if (!isOngoing) {
-                event.setEventStart(updated.getEventStart());
-                event.setEventEnd(updated.getEventEnd());
-                event.setTicketStart(updated.getTicketStart());
-            }
-
-            // 3. 更新 event_detail
-            String content = request.getParameter("description");
-            eventService.updateDetail(event, content);
-
-            // 4. 更新票種
-            String json = request.getParameter("eventTicketsJson");
-            if (json != null && !json.isBlank()) {
-                ObjectMapper mapper = new ObjectMapper();
-                List<EventTicketRequest> list = mapper.readValue(json, new TypeReference<List<EventTicketRequest>>() {
-                });
-                eventTicketTypeService.rebuildEventTickets(event, list);
-            }
-
-            // 5. 若有新封面 → 更新封面（覆蓋到 SMB）
-            if (coverFile != null && !coverFile.isEmpty()) {
-
-                // 先記錄舊檔名，等會刪除 SMB 檔案
-                List<String> oldFilenames = event.getImages().stream()
-                        .map(EventTitlePage::getImageUrl)
-                        .filter(url -> url != null && !url.isBlank())
-                        .map(url -> url.substring(url.lastIndexOf('/') + 1))
-                        .toList();
-
-                // 儲存新圖片到 SMB
-                String filename = UUID.randomUUID() + "_" + coverFile.getOriginalFilename();
-                smbStorageService.uploadCover(filename, coverFile.getInputStream());
-
-                // 建立新的 EventTitlePage
-                EventTitlePage page = new EventTitlePage();
-                page.setImageUrl("/api/files/covers/" + filename);
-                page.setEvent(event);
-
-                // 刪除舊資料庫紀錄（orphanRemoval = true 會自動刪 DB）
-                event.getImages().clear();
-                event.getImages().add(page);
-
-                // 刪除 SMB 上的舊檔（忽略刪除錯誤）
-                for (String old : oldFilenames) {
-                    try {
-                        smbStorageService.deleteCover(old);
-                    } catch (IOException ignore) {
-                        // 刪除失敗就略過，避免阻塞更新流程
-                    }
-                }
-            }
-
-            eventService.save(event);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("title", event.getTitle());
+            Map<String, Object> response = eventService.executeEventUpdate(
+                    id, companyId, updated, coverFile, description, ticketJson);
 
             return ResponseEntity.ok(response);
 
+        } catch (IllegalStateException e) {
+            // 捕獲業務邏輯驗證錯誤 (如：狀態不可編輯)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("更新活動失敗：" + e.getMessage());
@@ -324,24 +167,16 @@ public class EventApiController {
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<String> cancelEvent(@PathVariable Long id) {
-
         Long companyId = loginCompanyProvider.getCompanyId();
-        Event event = eventService.findOwnedEvent(id, companyId);
 
-        // 只能「未開放」才能取消
-        if (event.getStatus().getId() != 1) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("只有「未開放」的活動可以取消");
+        try {
+            eventService.executeEventCancellation(id, companyId);
+            return ResponseEntity.ok("活動已取消");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("取消失敗");
         }
-
-        // 取 id=5 的狀態（已取消）
-        EventStatus canceled = eventStatusRepository.findById(5L)
-                .orElseThrow(() -> new RuntimeException("找不到取消狀態"));
-
-        event.setStatus(canceled);
-        eventRepository.save(event);
-
-        return ResponseEntity.ok("活動已取消");
     }
 
     @GetMapping("/my")

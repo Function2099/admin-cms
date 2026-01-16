@@ -14,7 +14,7 @@ public class AnalyticsDTO {
     private TicketTypePie ticketPie;
     private Map<Long, CompareItem> compare;
 
-    // ===================== KPI =====================
+    // KPI
     @Data
     public static class KPI {
         private int todayViews;
@@ -23,7 +23,7 @@ public class AnalyticsDTO {
         private double conversionRate;
     }
 
-    // ===================== Overview =====================
+    // Overview
     @Data
     public static class Overview {
         private long totalViews;
@@ -32,7 +32,7 @@ public class AnalyticsDTO {
         private int totalEvents;
     }
 
-    // ===================== Line Charts =====================
+    // Line Charts
     @Data
     public static class LineCharts {
         private ChartData traffic; // 流量折線（合計）
@@ -53,7 +53,7 @@ public class AnalyticsDTO {
         }
     }
 
-    // ===================== Pie Chart =====================
+    // Pie Chart
     @Data
     public static class TicketTypePie {
         private List<String> labels; // 票種名稱

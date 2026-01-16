@@ -1,19 +1,25 @@
-package com.openticket.admin.controller;
+package com.openticket.admin.controller.organizer;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.openticket.admin.controller.BaseController;
 import com.openticket.admin.entity.Role;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
+// 主辦方後台層
+// 負責處理主辦方的頁面路由與(Fragment)頁面片段
 @Controller
 @RequestMapping("/organizer")
 public class CompanyController extends BaseController {
 
+    /**
+     * 後台主儀表板
+     */
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
         setupRole(model, session, Role.COMPANY);
@@ -21,10 +27,16 @@ public class CompanyController extends BaseController {
         return "index";
     }
 
+    /**
+     * 動態子路徑處理器
+     * 攔截所有 /organizer/dashboard/ 下的請求，根據 URI 決定嵌入哪個 Thymeleaf 片段
+     */
     @GetMapping("/dashboard/**")
     public String dashboardSub(HttpServletRequest request, Model model, HttpSession session) {
         setupRole(model, session, Role.COMPANY);
         String path = request.getRequestURI();
+        
+        // 提取相對路徑以匹配對應的視圖片段
         String subPath = path.replace("/organizer/dashboard/", "");
         String fragmentPath;
 
